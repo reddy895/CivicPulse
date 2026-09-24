@@ -853,6 +853,13 @@ class DataStore:
         if submitter_id:
             results = [r for r in results if r.submitter_id == submitter_id]
         return sorted(results, key=lambda x: (x.urgency_score, x.upvotes), reverse=True)
+
+    def get_request_by_id(self, request_id: str) -> Optional[CitizenRequestResponse]:
+        """Find a single citizen request by ID."""
+        for r in self.requests:
+            if r.id == request_id:
+                return r
+        return None
         
     def add_request(self, payload: CitizenRequestCreate) -> CitizenRequestResponse:
         """Process, classify, and persist a new citizen request, broadcasting to live stream."""

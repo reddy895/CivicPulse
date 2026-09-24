@@ -148,6 +148,14 @@ async def list_requests(
     """List aggregated citizen requests with multi-attribute filtering."""
     return db.get_all_requests(country_code=country_code, category=category, urgency=urgency, submitter_id=submitter_id)
 
+@router.get("/citizen/requests/{request_id}", response_model=CitizenRequestResponse)
+async def get_request_by_id(request_id: str):
+    """Retrieve details of a single citizen request."""
+    req = db.get_request_by_id(request_id)
+    if not req:
+        raise HTTPException(status_code=404, detail=f"Complaint '{request_id}' not found")
+    return req
+
 @router.patch("/citizen/requests/{request_id}/status", response_model=CitizenRequestResponse)
 async def update_complaint_status(
     request_id: str,

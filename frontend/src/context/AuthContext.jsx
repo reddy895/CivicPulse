@@ -1,32 +1,30 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { loginUser, registerUser, getAuthUser } from '../services/api';
+import { loginUser, registerUser } from '../services/api';
 
 const AuthContext = createContext(null);
 
+// Demo users for quick access
 export const DEMO_USERS = {
   citizen: {
-    id: 'usr_cit_ind_01',
+    id: 'usr_citizen_demo',
     name: 'Rajesh Sharma',
-    email: 'citizen.india@civicpulse.org',
+    email: 'citizen@civicpulse.local',
     role: 'citizen',
     country_code: 'IND',
     country_name: 'India',
-    district: 'Varanasi Rural, Uttar Pradesh',
-    clearance_level: 'Verified Citizen',
-    avatar_url: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80'
+    district: 'Bengaluru Urban',
+    clearance_level: null,
   },
   government: {
-    id: 'usr_gov_ind_01',
+    id: 'usr_gov_demo',
     name: 'Dr. Sunita Rao',
-    email: 'director.infra@gov.in',
+    email: 'govdemo@civicpulse.local',
     role: 'government',
     country_code: 'IND',
     country_name: 'India',
-    district: 'New Delhi Central',
     department: 'Ministry of Housing & Urban Infrastructure',
-    clearance_level: 'Level 4 - National Infrastructure Director',
-    avatar_url: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=150&auto=format&fit=crop&q=80'
-  }
+    clearance_level: 'Level 4 - National Director',
+  },
 };
 
 export function AuthProvider({ children }) {
@@ -34,108 +32,85 @@ export function AuthProvider({ children }) {
   const [token, setToken] = useState(null);
   const [loading, setLoading] = useState(true);
 
+  // Rehydrate from localStorage
   useEffect(() => {
-    // Restore session from localStorage or set default initial demo user
-    const savedToken = localStorage.getItem('civicpulse_auth_token');
-    const savedUser = localStorage.getItem('civicpulse_auth_user');
-
-    if (savedToken && savedUser) {
-      try {
+    try {
+      const savedToken = localStorage.getItem('cp_token');
+      const savedUser = localStorage.getItem('cp_user');
+      if (savedToken && savedUser) {
         setToken(savedToken);
         setUser(JSON.parse(savedUser));
-      } catch (e) {
-        setToken(null);
-        setUser(null);
       }
-    } else {
-      // Default initial state: Citizen portal active
-      const defaultUser = DEMO_USERS.citizen;
-      const defaultToken = 'civic_token_citizen_usr_cit_ind_01';
-      setUser(defaultUser);
-      setToken(defaultToken);
-      localStorage.setItem('civicpulse_auth_token', defaultToken);
-      localStorage.setItem('civicpulse_auth_user', JSON.stringify(defaultUser));
+    } catch {
+      localStorage.removeItem('cp_token');
+      localStorage.removeItem('cp_user');
     }
     setLoading(false);
   }, []);
 
+  const _persist = (tokenVal, userVal) => {
+    localStorage.setItem('cp_token', tokenVal);
+    localStorage.setItem('cp_user', JSON.stringify(userVal));
+    setToken(tokenVal);
+    setUser(userVal);
+  };
+
   const login = async (email, password, role = 'citizen') => {
-    setLoading(true);
     try {
       const res = await loginUser(email, password, role);
-      if (res && res.user) {
-        setUser(res.user);
-        setToken(res.token);
-        localStorage.setItem('civicpulse_auth_token', res.token);
-        localStorage.setItem('civicpulse_auth_user', JSON.stringify(res.user));
-        setLoading(false);
-        return { success: true, user: res.user };
-      }
-      throw new Error('Invalid credentials');
+      _persist(res.token, res.user);
+      return { success: true, user: res.user };
     } catch (err) {
-      setLoading(false);
       return { success: false, error: err.message || 'Login failed' };
     }
   };
 
   const register = async (payload) => {
-    setLoading(true);
     try {
       const res = await registerUser(payload);
-      if (res && res.user) {
-        setUser(res.user);
-        setToken(res.token);
-        localStorage.setItem('civicpulse_auth_token', res.token);
-        localStorage.setItem('civicpulse_auth_user', JSON.stringify(res.user));
-        setLoading(false);
-        return { success: true, user: res.user };
-      }
-      throw new Error('Registration failed');
+      _persist(res.token, res.user);
+      return { success: true, user: res.user };
     } catch (err) {
-      setLoading(false);
       return { success: false, error: err.message || 'Registration failed' };
     }
   };
 
-  const logout = () => {
-    setUser(null);
-    setToken(null);
-    localStorage.removeItem('civicpulse_auth_token');
-    localStorage.removeItem('civicpulse_auth_user');
+  const loginAsDemo = (role) => {
+    const demoUser = DEMO_USERS[role] || DEMO_USERS.citizen;
+    const demoToken = `demo_tok_${Date.now()}`;
+    _persist(demoToken, demoUser);
+    return demoUser;
   };
 
-  const switchRoleDemo = (targetRole) => {
-    const demoUser = DEMO_USERS[targetRole] || DEMO_USERS.citizen;
-    const demoToken = `civic_token_${targetRole}_${demoUser.id}`;
-    setUser(demoUser);
-    setToken(demoToken);
-    localStorage.setItem('civicpulse_auth_token', demoToken);
-    localStorage.setItem('civicpulse_auth_user', JSON.stringify(demoUser));
+  const logout = () => {
+    localStorage.removeItem('cp_token');
+    localStorage.removeItem('cp_user');
+    setToken(null);
+    setUser(null);
   };
+
+  // Legacy: used by old components
+  const switchRoleDemo = (role) => loginAsDemo(role);
+
+  const isAuthenticated = !!user && !!token;
+  const role = user?.role || null;
 
   return (
-    <AuthContext.Provider
-      value={{
-        user,
-        token,
-        role: user ? user.role : null,
-        isAuthenticated: !!user,
-        loading,
-        login,
-        register,
-        logout,
-        switchRoleDemo
-      }}
-    >
+    <AuthContext.Provider value={{
+      user, token, role, loading,
+      isAuthenticated,
+      login, register, logout,
+      loginAsDemo, switchRoleDemo,
+    }}>
       {children}
     </AuthContext.Provider>
   );
 }
 
 export function useAuth() {
-  const context = useContext(AuthContext);
-  if (!context) {
-    throw new Error('useAuth must be used within an AuthProvider');
-  }
-  return context;
+  const ctx = useContext(AuthContext);
+  if (!ctx) throw new Error('useAuth must be used inside AuthProvider');
+  return ctx;
 }
+
+export default AuthContext;

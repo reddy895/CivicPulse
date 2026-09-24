@@ -8,6 +8,7 @@ import { useAuth } from '../context/AuthContext';
 import { useTranslation } from 'react-i18next';
 import i18n, { SUPPORTED_LANGUAGES } from '../i18n/index.js';
 import logoImg from '../assets/logo.png';
+import brandLogo from '../assets/civicpulse-logo.png';
 
 const CITIZEN_NAV = [
   { id: 'home', labelKey: 'nav.home', icon: Home },
@@ -75,21 +76,14 @@ export default function Navbar({
           {/* Brand */}
           <button 
             onClick={() => handleNavClick('map')}
-            className="flex items-center gap-2.5 shrink-0 group"
+            className="flex items-center shrink-0 group cursor-pointer"
             aria-label="CivicPulse Home"
           >
-            <div className="w-9 h-9 rounded-full bg-[var(--text-primary)] p-0.5 border-2 border-[var(--accent-tertiary)]/50 overflow-hidden group-hover:border-[var(--accent-tertiary)] transition-colors">
-              <img src={logoImg} alt="CivicPulse" className="w-full h-full rounded-full object-cover" />
-            </div>
-            <div className="hidden sm:block">
-              <span className="text-base font-extrabold text-[var(--text-primary)] tracking-tight">CivicPulse</span>
-              <div className="flex items-center gap-1.5">
-                <span className="w-1.5 h-1.5 rounded-full bg-[var(--status-success)] animate-pulse" />
-                <span className="text-[10px] font-medium text-[var(--text-tertiary)] uppercase tracking-wide">
-                  {role === 'government' ? 'Government Portal' : 'Citizen Portal'}
-                </span>
-              </div>
-            </div>
+            <img 
+              src={brandLogo} 
+              alt="CivicPulse - Citizen Data • Stronger Communities" 
+              className="h-10 sm:h-11 w-auto object-contain transition-transform duration-200 group-hover:scale-105 rounded-md" 
+            />
           </button>
 
           {/* Desktop Navigation */}

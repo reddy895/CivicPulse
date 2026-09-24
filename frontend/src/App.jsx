@@ -1,139 +1,109 @@
-import React, { useState } from 'react';
+import React from 'react';
+import { Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
-import LoginPage from './components/LoginPage';
-import Navbar from './components/Navbar';
-import GISMap from './components/GISMap';
-import GovernmentDashboard from './components/GovernmentDashboard';
-import CitizenDashboard from './components/CitizenDashboard';
-import RecommendationView from './components/RecommendationView';
-import MisalignmentView from './components/MisalignmentView';
-import PolicySimulator from './components/PolicySimulator';
-import DPGHub from './components/DPGHub';
-import DisabilityComplaintsView from './components/DisabilityComplaintsView';
-import AICopilotModal from './components/AICopilotModal';
-import CommandPalette from './components/CommandPalette';
-import ToastContainer from './components/ui/Toast';
-import LandingPage from './pages/LandingPage';
-import ReportPage from './pages/ReportPage';
-import MyReportsPage from './pages/MyReportsPage';
-import GovernmentPortal from './pages/GovernmentPortal';
 
-function AppContent() {
-  const { isAuthenticated, role, user } = useAuth();
-  const [activeTab, setActiveTab] = useState('home');
-  const [selectedCountry, setSelectedCountry] = useState('IND');
-  const [isCopilotOpen, setIsCopilotOpen] = useState(false);
-  const [copilotMode, setCopilotMode] = useState('general');
-  const [isPaletteOpen, setIsPaletteOpen] = useState(false);
+// Layouts
+import PublicLayout from './layouts/PublicLayout';
+import CitizenLayout from './layouts/CitizenLayout';
+import GovLayout from './layouts/GovLayout';
 
-  const handleOpenCopilot = (mode = 'general') => {
-    setCopilotMode(mode);
-    setIsCopilotOpen(true);
-  };
+// Public pages
+import HomePage from './pages/public/HomePage';
+import HowItWorksPage from './pages/public/HowItWorksPage';
+import ExplorePage from './pages/public/ExplorePage';
 
-  if (!isAuthenticated || !user) return <LoginPage />;
+// Auth pages
+import CitizenLoginPage from './pages/auth/CitizenLoginPage';
+import CitizenSignupPage from './pages/auth/CitizenSignupPage';
+import GovLoginPage from './pages/auth/GovLoginPage';
 
-  // Government users land on stream by default
-  const effectiveTab = activeTab === 'home' && role === 'government' ? 'stream' : activeTab;
+// Citizen pages
+import ReportGatePage from './pages/citizen/ReportGatePage';
+import ReportNewPage from './pages/citizen/ReportNewPage';
+import CitizenDashboardPage from './pages/citizen/CitizenDashboardPage';
+import ComplaintDetailPage from './pages/citizen/ComplaintDetailPage';
 
-  const renderContent = () => {
-    // HOME / LANDING
-    if (effectiveTab === 'home') return <LandingPage onNavigate={setActiveTab} />;
+// Government pages
+import GovDashboardPage from './pages/government/GovDashboardPage';
+import GovComplaintsPage from './pages/government/GovComplaintsPage';
+import GovComplaintDetailPage from './pages/government/GovComplaintDetailPage';
+import GovMapPage from './pages/government/GovMapPage';
+import GovAnalyticsPage from './pages/government/GovAnalyticsPage';
 
-    // REPORT (citizen)
-    if (effectiveTab === 'citizen') return <ReportPage onNavigate={setActiveTab} />;
+// Toast
+import { ToastContainer } from './components/ui/Toast';
 
-    // MY REPORTS (citizen)
-    if (effectiveTab === 'my_reports') return <MyReportsPage onNavigate={setActiveTab} />;
+// Route guards
+function RequireCitizen({ children }) {
+  const { isAuthenticated, role, loading } = useAuth();
+  if (loading) return null;
+  if (!isAuthenticated) return <Navigate to="/login" replace />;
+  if (role === 'government') return <Navigate to="/gov-demo" replace />;
+  return children;
+}
 
-    // GOVERNMENT PORTAL
-    if (effectiveTab === 'stream' && role === 'government') return (
-      <GovernmentPortal selectedCountry={selectedCountry} />
-    );
+function RequireGov({ children }) {
+  const { isAuthenticated, role, loading } = useAuth();
+  if (loading) return null;
+  if (!isAuthenticated) return <Navigate to="/gov-demo/login" replace />;
+  if (role !== 'government') return <Navigate to="/dashboard" replace />;
+  return children;
+}
 
-    // GIS MAP
-    if (effectiveTab === 'map') return (
-      <GISMap
-        selectedCountry={selectedCountry}
-        onSelectProject={() => setActiveTab('recommendations')}
-        onOpenCopilot={() => handleOpenCopilot('general')}
-      />
-    );
+function RedirectIfAuthed({ children }) {
+  const { isAuthenticated, role, loading } = useAuth();
+  if (loading) return null;
+  if (isAuthenticated) {
+    return <Navigate to={role === 'government' ? '/gov-demo' : '/dashboard'} replace />;
+  }
+  return children;
+}
 
-    // GOV VIEWS
-    if (effectiveTab === 'recommendations') return (
-      <RecommendationView
-        selectedCountry={selectedCountry}
-        onOpenTenderModal={(p) => handleOpenCopilot('tender')}
-        onOpenCopilot={handleOpenCopilot}
-      />
-    );
-    if (effectiveTab === 'complaints') return (
-      <DisabilityComplaintsView
-        onOpenCopilot={handleOpenCopilot}
-        onSelectCounty={() => setActiveTab('map')}
-      />
-    );
-    if (effectiveTab === 'misalignment') return (
-      <MisalignmentView
-        selectedCountry={selectedCountry}
-        onGoToSimulator={() => setActiveTab('simulator')}
-      />
-    );
-    if (effectiveTab === 'simulator') return (
-      <PolicySimulator
-        selectedCountry={selectedCountry}
-        onOpenCopilot={handleOpenCopilot}
-      />
-    );
-    if (effectiveTab === 'dpg') return <DPGHub selectedCountry={selectedCountry} />;
-
-    // Stream fallback (citizen view)
-    if (effectiveTab === 'stream') return <CitizenDashboard selectedCountry={selectedCountry} onGoToMap={() => setActiveTab('map')} />;
-
-    // Default
-    return <LandingPage onNavigate={setActiveTab} />;
-  };
-
+function AppRoutes() {
   return (
-    <div className="min-h-screen flex flex-col bg-[var(--bg-primary)] text-[var(--text-primary)]">
-      <Navbar
-        activeTab={effectiveTab}
-        setActiveTab={setActiveTab}
-        selectedCountry={selectedCountry}
-        setSelectedCountry={setSelectedCountry}
-        onOpenPalette={() => setIsPaletteOpen(true)}
-      />
+    <>
+      <Routes>
+        {/* ── PUBLIC ── */}
+        <Route element={<PublicLayout />}>
+          <Route path="/" element={<HomePage />} />
+          <Route path="/how-it-works" element={<HowItWorksPage />} />
+          <Route path="/explore" element={<ExplorePage />} />
+        </Route>
 
-      <main className="flex-1" id="main-content">
-        {renderContent()}
-      </main>
+        {/* ── AUTH ── */}
+        <Route path="/login" element={<RedirectIfAuthed><CitizenLoginPage /></RedirectIfAuthed>} />
+        <Route path="/signup" element={<RedirectIfAuthed><CitizenSignupPage /></RedirectIfAuthed>} />
+        <Route path="/gov-demo/login" element={<RedirectIfAuthed><GovLoginPage /></RedirectIfAuthed>} />
 
-      <CommandPalette
-        isOpen={isPaletteOpen}
-        onClose={setIsPaletteOpen}
-        onNavigate={setActiveTab}
-        onSelectCountry={setSelectedCountry}
-        onTriggerCopilot={() => { setCopilotMode('general'); setIsCopilotOpen(true); }}
-      />
+        {/* ── CITIZEN ── */}
+        <Route element={<CitizenLayout />}>
+          <Route path="/report" element={<ReportGatePage />} />
+          <Route path="/report/new" element={<RequireCitizen><ReportNewPage /></RequireCitizen>} />
+          <Route path="/dashboard" element={<RequireCitizen><CitizenDashboardPage /></RequireCitizen>} />
+          <Route path="/dashboard/reports/:id" element={<RequireCitizen><ComplaintDetailPage /></RequireCitizen>} />
+        </Route>
 
-      <AICopilotModal
-        isOpen={isCopilotOpen}
-        onClose={() => setIsCopilotOpen(false)}
-        selectedCountry={selectedCountry}
-        defaultMode={copilotMode}
-        targetProject={null}
-      />
+        {/* ── GOVERNMENT ── */}
+        <Route element={<GovLayout />}>
+          <Route path="/gov-demo" element={<RequireGov><GovDashboardPage /></RequireGov>} />
+          <Route path="/gov-demo/complaints" element={<RequireGov><GovComplaintsPage /></RequireGov>} />
+          <Route path="/gov-demo/complaints/:id" element={<RequireGov><GovComplaintDetailPage /></RequireGov>} />
+          <Route path="/gov-demo/map" element={<RequireGov><GovMapPage /></RequireGov>} />
+          <Route path="/gov-demo/analytics" element={<RequireGov><GovAnalyticsPage /></RequireGov>} />
+        </Route>
 
+        {/* ── FALLBACK ── */}
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
       <ToastContainer />
-    </div>
+    </>
   );
 }
 
 export default function App() {
   return (
     <AuthProvider>
-      <AppContent />
+      <AppRoutes />
     </AuthProvider>
   );
 }
