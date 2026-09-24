@@ -88,6 +88,18 @@ class CitizenRequestCreate(BaseModel):
     submitter_email: Optional[str] = Field(None, description="Email of authenticated citizen")
     contact_hash: Optional[str] = Field(None, description="Anonymized contact hash for status updates")
 
+class EvidenceItem(BaseModel):
+    id: str
+    complaint_id: str
+    filename: str
+    original_filename: str
+    file_type: str
+    file_size_bytes: int
+    storage_url: str
+    upload_timestamp: str
+    width: Optional[int] = None
+    height: Optional[int] = None
+
 class CitizenRequestResponse(BaseModel):
     id: str
     original_text: str
@@ -113,6 +125,8 @@ class CitizenRequestResponse(BaseModel):
     submitter_name: Optional[str] = None
     created_at: str
     extracted_entities: Dict[str, Any]
+    evidence_count: Optional[int] = 0
+    evidence: Optional[List["EvidenceItem"]] = []
 
 class LiveGrievanceEvent(BaseModel):
     event_type: str = "NEW_COMPLAINT"

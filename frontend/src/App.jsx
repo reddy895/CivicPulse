@@ -1,11 +1,10 @@
 import React, { useState } from 'react';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import LoginPage from './components/LoginPage';
-import Sidebar from './components/Sidebar';
 import Navbar from './components/Navbar';
 import GISMap from './components/GISMap';
-import CitizenDashboard from './components/CitizenDashboard';
 import GovernmentDashboard from './components/GovernmentDashboard';
+import CitizenDashboard from './components/CitizenDashboard';
 import RecommendationView from './components/RecommendationView';
 import MisalignmentView from './components/MisalignmentView';
 import PolicySimulator from './components/PolicySimulator';
@@ -14,177 +13,119 @@ import DisabilityComplaintsView from './components/DisabilityComplaintsView';
 import AICopilotModal from './components/AICopilotModal';
 import CommandPalette from './components/CommandPalette';
 import ToastContainer from './components/ui/Toast';
-import { ShieldCheck } from 'lucide-react';
+import LandingPage from './pages/LandingPage';
+import ReportPage from './pages/ReportPage';
+import MyReportsPage from './pages/MyReportsPage';
+import GovernmentPortal from './pages/GovernmentPortal';
 
 function AppContent() {
   const { isAuthenticated, role, user } = useAuth();
-
-  const [activeTab, setActiveTab] = useState('map');
+  const [activeTab, setActiveTab] = useState('home');
   const [selectedCountry, setSelectedCountry] = useState('IND');
-  const [uiLang, setUiLang] = useState('en');
-
-  // Copilot Modal State
   const [isCopilotOpen, setIsCopilotOpen] = useState(false);
   const [copilotMode, setCopilotMode] = useState('general');
-  const [copilotTargetProject, setCopilotTargetProject] = useState(null);
-
-  // Command Palette State
   const [isPaletteOpen, setIsPaletteOpen] = useState(false);
 
-  const handleOpenCopilot = (mode = 'general', targetProj = null) => {
+  const handleOpenCopilot = (mode = 'general') => {
     setCopilotMode(mode);
-    setCopilotTargetProject(targetProj);
     setIsCopilotOpen(true);
   };
 
-  const handleSelectProjectFromMap = (hotspot) => {
-    setActiveTab('recommendations');
-  };
+  if (!isAuthenticated || !user) return <LoginPage />;
 
-  const handleTriggerCopilotFromPalette = (queryText) => {
-    setCopilotMode('general');
-    setIsCopilotOpen(true);
-  };
+  // Government users land on stream by default
+  const effectiveTab = activeTab === 'home' && role === 'government' ? 'stream' : activeTab;
 
-  if (!isAuthenticated || !user) {
-    return <LoginPage />;
-  }
+  const renderContent = () => {
+    // HOME / LANDING
+    if (effectiveTab === 'home') return <LandingPage onNavigate={setActiveTab} />;
+
+    // REPORT (citizen)
+    if (effectiveTab === 'citizen') return <ReportPage onNavigate={setActiveTab} />;
+
+    // MY REPORTS (citizen)
+    if (effectiveTab === 'my_reports') return <MyReportsPage onNavigate={setActiveTab} />;
+
+    // GOVERNMENT PORTAL
+    if (effectiveTab === 'stream' && role === 'government') return (
+      <GovernmentPortal selectedCountry={selectedCountry} />
+    );
+
+    // GIS MAP
+    if (effectiveTab === 'map') return (
+      <GISMap
+        selectedCountry={selectedCountry}
+        onSelectProject={() => setActiveTab('recommendations')}
+        onOpenCopilot={() => handleOpenCopilot('general')}
+      />
+    );
+
+    // GOV VIEWS
+    if (effectiveTab === 'recommendations') return (
+      <RecommendationView
+        selectedCountry={selectedCountry}
+        onOpenTenderModal={(p) => handleOpenCopilot('tender')}
+        onOpenCopilot={handleOpenCopilot}
+      />
+    );
+    if (effectiveTab === 'complaints') return (
+      <DisabilityComplaintsView
+        onOpenCopilot={handleOpenCopilot}
+        onSelectCounty={() => setActiveTab('map')}
+      />
+    );
+    if (effectiveTab === 'misalignment') return (
+      <MisalignmentView
+        selectedCountry={selectedCountry}
+        onGoToSimulator={() => setActiveTab('simulator')}
+      />
+    );
+    if (effectiveTab === 'simulator') return (
+      <PolicySimulator
+        selectedCountry={selectedCountry}
+        onOpenCopilot={handleOpenCopilot}
+      />
+    );
+    if (effectiveTab === 'dpg') return <DPGHub selectedCountry={selectedCountry} />;
+
+    // Stream fallback (citizen view)
+    if (effectiveTab === 'stream') return <CitizenDashboard selectedCountry={selectedCountry} onGoToMap={() => setActiveTab('map')} />;
+
+    // Default
+    return <LandingPage onNavigate={setActiveTab} />;
+  };
 
   return (
-    <div className="min-h-screen flex bg-[#FDFBF7] text-[#2C1810] selection:bg-[#D4A373]/30 selection:text-[#2C1810]">
-      
-      {/* 1. Left Vertical Sidebar Navigation (270px fixed) */}
-      <Sidebar
-        activeTab={activeTab}
+    <div className="min-h-screen flex flex-col bg-[var(--bg-primary)] text-[var(--text-primary)]">
+      <Navbar
+        activeTab={effectiveTab}
         setActiveTab={setActiveTab}
+        selectedCountry={selectedCountry}
+        setSelectedCountry={setSelectedCountry}
+        onOpenPalette={() => setIsPaletteOpen(true)}
       />
 
-      {/* 2. Main Fluid Command Workspace */}
-      <div className="flex-1 flex flex-col min-w-0 overflow-x-hidden">
-        
-        {/* Top Command Bar */}
-        <Navbar
-          selectedCountry={selectedCountry}
-          setSelectedCountry={setSelectedCountry}
-          uiLang={uiLang}
-          setUiLang={setUiLang}
-          onOpenCopilot={() => handleOpenCopilot('brief')}
-          onOpenPalette={() => setIsPaletteOpen(true)}
-        />
+      <main className="flex-1" id="main-content">
+        {renderContent()}
+      </main>
 
-        {/* Active Module View */}
-        <main className="flex-1 py-8">
-          {activeTab === 'map' && (
-            <GISMap
-              selectedCountry={selectedCountry}
-              onSelectProject={handleSelectProjectFromMap}
-              onOpenCopilot={() => handleOpenCopilot('general')}
-            />
-          )}
-
-          {activeTab === 'stream' && (
-            <GovernmentDashboard
-              selectedCountry={selectedCountry}
-              setSelectedCountry={setSelectedCountry}
-              onOpenCopilot={handleOpenCopilot}
-              externalActiveTab="stream"
-              onSelectTab={setActiveTab}
-            />
-          )}
-
-          {activeTab === 'citizen' && (
-            <CitizenDashboard
-              selectedCountry={selectedCountry}
-              onGoToMap={(regionName) => {
-                setSelectedCountry('IND');
-                setActiveTab('map');
-              }}
-            />
-          )}
-
-          {activeTab === 'recommendations' && (
-            <RecommendationView
-              selectedCountry={selectedCountry}
-              onOpenTenderModal={(proj) => handleOpenCopilot('tender', proj)}
-              onOpenCopilot={(mode) => handleOpenCopilot(mode)}
-            />
-          )}
-
-          {activeTab === 'complaints' && (
-            <DisabilityComplaintsView
-              onOpenCopilot={(mode) => handleOpenCopilot(mode)}
-              onSelectCounty={(c) => setActiveTab('map')}
-            />
-          )}
-
-          {activeTab === 'misalignment' && (
-            <MisalignmentView
-              selectedCountry={selectedCountry}
-              onGoToSimulator={() => setActiveTab('simulator')}
-            />
-          )}
-
-          {activeTab === 'simulator' && (
-            <PolicySimulator
-              selectedCountry={selectedCountry}
-              onOpenCopilot={(mode) => handleOpenCopilot(mode)}
-            />
-          )}
-
-          {activeTab === 'dpg' && (
-            <DPGHub
-              selectedCountry={selectedCountry}
-            />
-          )}
-        </main>
-
-        {/* Minimal Sovereign Footer */}
-        <footer className="bg-[#FFFFFF] border-t border-[#E8E0D5] py-5 px-8 text-xs text-[#5C4A42]">
-          <div className="max-w-[1440px] mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
-            <div className="flex items-center gap-2">
-              <span className="font-bold text-[#2C1810]">CivicPulse DPG</span>
-              <span className="text-[#E8E0D5]">•</span>
-              <span>
-                {role === 'government' ? 'National Government Command Center' : 'Citizen Grievance & Demands Gateway'}
-              </span>
-            </div>
-
-            <div className="flex items-center gap-4 text-[#9C8C84]">
-              <span className="text-[#5A8F6E] font-semibold flex items-center gap-1.5">
-                <ShieldCheck className="w-4 h-4" />
-                DPGA Certified v1.4.0
-              </span>
-              <span>•</span>
-              <span>Open Standard (Apache 2.0 / MIT)</span>
-              <span>•</span>
-              <span>UN SDG 9 & 11 Aligned</span>
-            </div>
-          </div>
-        </footer>
-
-      </div>
-
-      {/* Command Palette Modal (Ctrl+K / Cmd+K) */}
       <CommandPalette
         isOpen={isPaletteOpen}
         onClose={setIsPaletteOpen}
-        onNavigate={(tabId) => setActiveTab(tabId)}
-        onSelectCountry={(cCode) => setSelectedCountry(cCode)}
-        onTriggerCopilot={handleTriggerCopilotFromPalette}
+        onNavigate={setActiveTab}
+        onSelectCountry={setSelectedCountry}
+        onTriggerCopilot={() => { setCopilotMode('general'); setIsCopilotOpen(true); }}
       />
 
-      {/* Global AI Policy Copilot Modal */}
       <AICopilotModal
         isOpen={isCopilotOpen}
         onClose={() => setIsCopilotOpen(false)}
         selectedCountry={selectedCountry}
         defaultMode={copilotMode}
-        targetProject={copilotTargetProject}
+        targetProject={null}
       />
 
-      {/* Global Toast Notifications Container */}
       <ToastContainer />
-
     </div>
   );
 }

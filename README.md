@@ -174,3 +174,6 @@ CivicPulse meets all **9 DPGA Standard Indicators**:
 7. **Linguistic Inclusivity**: Multi-modal voice & text across native dialects.
 8. **Do No Harm & Ethical AI**: Transparent MCDA weightings.
 9. **Interoperability**: Standard REST APIs for sovereign e-Governance platforms.
+
+
+Built by Praveen Reddy

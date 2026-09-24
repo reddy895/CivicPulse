@@ -1,8 +1,9 @@
 import io
 import csv
+import mimetypes
 from typing import Optional, List, Dict, Any
-from fastapi import APIRouter, UploadFile, File, Form, Query, HTTPException
-from fastapi.responses import StreamingResponse, JSONResponse
+from fastapi import APIRouter, UploadFile, File, Form, Query, HTTPException, Request
+from fastapi.responses import StreamingResponse, JSONResponse, Response
 
 from ..models.schemas import (
     CitizenRequestCreate, CitizenRequestResponse, VoiceSubmissionResponse,
@@ -10,7 +11,8 @@ from ..models.schemas import (
     MCDAWeights, ProjectRecommendation, SpendMisalignmentItem,
     PolicySimulationRequest, PolicySimulationResponse,
     AICopilotQuery, AICopilotResponse, CountryCode,
-    LoginRequest, RegisterRequest, AuthTokenResponse, UserProfile, ComplaintStatusUpdate
+    LoginRequest, RegisterRequest, AuthTokenResponse, UserProfile, ComplaintStatusUpdate,
+    EvidenceItem
 )
 from ..services.data_store import db
 from ..services.auth_service import auth_service
@@ -21,6 +23,10 @@ from ..services.misalignment_engine import analyze_spend_misalignment
 from ..services.policy_simulator import run_policy_simulation
 from ..services.ai_copilot import generate_ai_copilot_response
 from ..services.disability_adapter import load_disability_records, get_disability_summary
+from ..services.evidence_storage import (
+    validate_evidence_file, store_evidence, get_evidence_for_complaint,
+    get_evidence_file, delete_evidence, MAX_FILE_SIZE_BYTES
+)
 
 router = APIRouter()
 
@@ -159,10 +165,96 @@ async def update_complaint_status(
         raise HTTPException(status_code=404, detail=f"Request ID '{request_id}' not found.")
     return updated
 
+
+# ----------------- EVIDENCE UPLOAD & RETRIEVAL ----------------- #
+
+@router.post("/complaints/{complaint_id}/evidence")
+async def upload_complaint_evidence(
+    complaint_id: str,
+    file: UploadFile = File(...),
+):
+    """
+    Upload evidence image for a complaint.
+    Supports: JPG, JPEG, PNG, WEBP. Max 10MB per file, max 5 per complaint.
+    """
+    # Check existing evidence count
+    existing = get_evidence_for_complaint(complaint_id)
+    if len(existing) >= 5:
+        raise HTTPException(status_code=400, detail="Maximum 5 evidence images allowed per complaint.")
+    
+    # Read file bytes
+    try:
+        file_bytes = await file.read()
+    except Exception:
+        raise HTTPException(status_code=400, detail="Failed to read uploaded file.")
+    
+    # Validate
+    content_type = file.content_type or "application/octet-stream"
+    is_valid, error_msg = validate_evidence_file(
+        filename=file.filename or "upload",
+        content_type=content_type,
+        file_bytes=file_bytes
+    )
+    if not is_valid:
+        raise HTTPException(status_code=422, detail=error_msg)
+    
+    # Store
+    record = store_evidence(
+        complaint_id=complaint_id,
+        filename=file.filename or "evidence.jpg",
+        content_type=content_type,
+        file_bytes=file_bytes,
+    )
+    
+    return record
+
+
+@router.get("/complaints/{complaint_id}/evidence")
+async def get_complaint_evidence(complaint_id: str):
+    """Get all evidence items for a complaint."""
+    evidence = get_evidence_for_complaint(complaint_id)
+    return evidence
+
+
+@router.get("/evidence/{complaint_id}/{filename}")
+async def serve_evidence_file(complaint_id: str, filename: str):
+    """
+    Serve evidence file bytes. 
+    In production, redirect to signed S3 URL or enforce auth token check here.
+    """
+    file_bytes = get_evidence_file(complaint_id, filename)
+    if file_bytes is None:
+        raise HTTPException(status_code=404, detail="Evidence file not found.")
+    
+    # Determine content type
+    mime_type, _ = mimetypes.guess_type(filename)
+    if mime_type not in {"image/jpeg", "image/png", "image/webp"}:
+        mime_type = "image/jpeg"
+    
+    return Response(
+        content=file_bytes,
+        media_type=mime_type,
+        headers={
+            "Cache-Control": "private, max-age=3600",
+            "Content-Disposition": f"inline; filename={filename}"
+        }
+    )
+
+
+@router.delete("/complaints/{complaint_id}/evidence/{evidence_id}")
+async def delete_complaint_evidence(complaint_id: str, evidence_id: str):
+    """Delete a specific evidence item from a complaint."""
+    success = delete_evidence(complaint_id, evidence_id)
+    if not success:
+        raise HTTPException(status_code=404, detail="Evidence item not found.")
+    return {"message": "Evidence deleted successfully", "evidence_id": evidence_id}
+
+
 @router.get("/stream/live-events")
 async def get_live_events(limit: int = Query(25)):
     """Retrieve real-time event stream of recent incoming citizen complaints & government status updates."""
     return db.get_live_events(limit=limit)
+
 
 # ----------------- ANALYTICS & DECISION ENGINE ----------------- #
 
