@@ -1,0 +1,296 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600;700&display=swap');
+
+:root {
+  /* Core Coffee & Crème Palette */
+  --bg-primary: #FDFBF7;
+  --bg-secondary: #F5F0E8;
+  --bg-card: #FFFFFF;
+  --border-warm: #E8E0D5;
+  --border-divider: #F0EBE3;
+
+  /* Accents */
+  --accent-primary: #6F4E37;
+  --accent-secondary: #A67B5B;
+  --accent-tertiary: #D4A373;
+
+  /* Strict Text Hierarchy */
+  --text-primary: #2C1810;
+  --text-secondary: #5C4A42;
+  --text-tertiary: #9C8C84;
+
+  /* Softened Semantic Status */
+  --status-success: #5A8F6E;
+  --status-success-bg: #F0F6F2;
+  --status-warning: #C78D3F;
+  --status-warning-bg: #FDF8F0;
+  --status-danger: #B54A4A;
+  --status-danger-bg: #FDF2F2;
+  --status-info: #5A7D9A;
+  --status-info-bg: #F0F4F8;
+
+  /* Fonts */
+  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: var(--font-sans);
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  min-height: 100vh;
+  letter-spacing: -0.01em;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Tabular Figures for Numbers */
+.tabular-nums, .font-mono {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum";
+}
+
+/* Typography Hierarchy */
+.text-label {
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-tertiary);
+}
+
+.text-kpi {
+  font-family: var(--font-sans);
+  font-size: 32px;
+  font-weight: 700;
+  color: var(--text-primary);
+  line-height: 1.1;
+  font-variant-numeric: tabular-nums;
+}
+
+.text-kpi-sub {
+  font-size: 12px;
+  color: var(--text-secondary);
+  margin-top: 4px;
+}
+
+/* Card Component Rules */
+.card-coffee {
+  background: var(--bg-card);
+  border: 1px solid var(--border-warm);
+  border-radius: 12px;
+  box-shadow: 0 1px 3px rgba(44, 24, 16, 0.04), 0 4px 12px rgba(44, 24, 16, 0.02);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.card-coffee-interactive:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(44, 24, 16, 0.06);
+}
+
+/* Button Component Rules */
+.btn-primary {
+  background: var(--accent-primary);
+  color: #FFFFFF;
+  font-weight: 600;
+  font-size: 13px;
+  padding: 8px 18px;
+  border-radius: 8px;
+  border: 1px solid transparent;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  transition: background 0.15s ease, transform 0.1s ease;
+}
+
+.btn-primary:hover {
+  background: #5E3F2A;
+}
+
+.btn-primary:active {
+  transform: scale(0.98);
+}
+
+.btn-secondary {
+  background: #FFFFFF;
+  border: 1px solid var(--accent-primary);
+  color: var(--accent-primary);
+  font-weight: 600;
+  font-size: 13px;
+  padding: 8px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.btn-secondary:hover {
+  background: var(--bg-secondary);
+}
+
+.btn-ghost {
+  background: transparent;
+  color: var(--text-secondary);
+  font-weight: 500;
+  font-size: 13px;
+  padding: 6px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: color 0.15s ease, background 0.15s ease;
+}
+
+.btn-ghost:hover {
+  color: var(--accent-primary);
+  background: var(--bg-secondary);
+}
+
+/* Form Inputs */
+.form-input {
+  background: #FFFFFF;
+  border: 1px solid var(--border-warm);
+  color: var(--text-primary);
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-size: 13px;
+  font-family: inherit;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.form-input:focus {
+  outline: none;
+  border-color: var(--accent-primary);
+  box-shadow: 0 0 0 2px rgba(111, 78, 55, 0.15);
+}
+
+/* Badges & Status Pills */
+.badge-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+.badge-pill-danger {
+  background: var(--status-danger-bg);
+  color: var(--status-danger);
+  border: 1px solid rgba(181, 74, 74, 0.2);
+}
+
+.badge-pill-warning {
+  background: var(--status-warning-bg);
+  color: var(--status-warning);
+  border: 1px solid rgba(199, 141, 63, 0.2);
+}
+
+.badge-pill-success {
+  background: var(--status-success-bg);
+  color: var(--status-success);
+  border: 1px solid rgba(90, 143, 110, 0.2);
+}
+
+.badge-pill-info {
+  background: var(--status-info-bg);
+  color: var(--status-info);
+  border: 1px solid rgba(90, 125, 154, 0.2);
+}
+
+.badge-pill-neutral {
+  background: var(--bg-secondary);
+  color: var(--text-secondary);
+  border: 1px solid var(--border-warm);
+}
+
+/* Range Slider - Coffee Brown */
+input[type="range"] {
+  -webkit-appearance: none;
+  width: 100%;
+  height: 6px;
+  background: var(--bg-secondary);
+  border-radius: 4px;
+  outline: none;
+}
+
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #FFFFFF;
+  border: 2px solid var(--accent-primary);
+  box-shadow: 0 1px 3px rgba(44, 24, 16, 0.2);
+  cursor: pointer;
+  transition: transform 0.1s ease;
+}
+
+input[type="range"]::-webkit-slider-thumb:hover {
+  transform: scale(1.15);
+}
+
+/* Light Map Styling */
+.leaflet-container {
+  width: 100%;
+  height: 100%;
+  border-radius: 12px;
+  background-color: #FDFBF7 !important;
+  font-family: inherit !important;
+}
+
+.leaflet-popup-content-wrapper {
+  background: #FFFFFF !important;
+  color: var(--text-primary) !important;
+  border: 1px solid var(--border-warm) !important;
+  border-radius: 8px !important;
+  box-shadow: 0 4px 16px rgba(44, 24, 16, 0.08) !important;
+  padding: 0 !important;
+}
+
+.leaflet-popup-content {
+  margin: 10px 14px !important;
+  line-height: 1.4 !important;
+  font-size: 12px !important;
+}
+
+.leaflet-popup-tip {
+  background: #FFFFFF !important;
+}
+
+/* Audio Waveform Animation */
+@keyframes audioPulse {
+  0%, 100% { height: 8px; }
+  50% { height: 32px; }
+}
+
+.audio-bar-coffee {
+  animation: audioPulse 1.2s ease-in-out infinite;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: var(--bg-primary);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--border-warm);
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--accent-tertiary);
+}

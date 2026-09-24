@@ -1,0 +1,11 @@
+{
+  "name": "backend",
+  "version": "1.0.0",
+  "private": true,
+  "description": "CivicPulse FastAPI Backend Service",
+  "scripts": {
+    "dev": "bash -c 'if [ -f .venv/bin/uvicorn ]; then .venv/bin/uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload; elif command -v uvicorn >/dev/null 2>&1; then uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload; else python3 -m uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload; fi'",
+    "start": "bash -c 'if [ -f .venv/bin/uvicorn ]; then .venv/bin/uvicorn app.main:app --host 0.0.0.0 --port 8000; elif command -v uvicorn >/dev/null 2>&1; then uvicorn app.main:app --host 0.0.0.0 --port 8000; else python3 -m uvicorn app.main:app --host 0.0.0.0 --port 8000; fi'",
+    "test": "pytest tests"
+  }
+}
