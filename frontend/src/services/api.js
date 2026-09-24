@@ -149,68 +149,6 @@ export async function submitCitizenRequest(payload) {
   }
 }
 
-export async function submitVoiceRequest(audioBlob, countryCode = 'IND', filename = 'recording.wav') {
-  try {
-    const formData = new FormData();
-    if (audioBlob) {
-      formData.append('file', audioBlob, filename);
-    }
-    formData.append('country_code', countryCode);
-    formData.append('channel', 'voice');
-
-    const res = await fetch(`${API_BASE_URL}/citizen/voice`, {
-      method: 'POST',
-      body: formData
-    });
-    if (!res.ok) throw new Error('Voice submission failed');
-    return await res.json();
-  } catch (err) {
-    console.warn('Voice upload error, fallback to preset handler:', err);
-    return null;
-  }
-}
-
-export async function getVoicePresets() {
-  try {
-    const res = await fetch(`${API_BASE_URL}/citizen/voice/presets`);
-    if (!res.ok) throw new Error('Failed to fetch voice presets');
-    return await res.json();
-  } catch (err) {
-    return [
-      {
-        language: "kn",
-        audio_name: "karnataka_bengaluru_water_pot_holes.wav",
-        transcription: "ನಮ್ಮ ಬೆಂಗಳೂರು ಮತ್ತು ಕರ್ನಾಟಕ ಪ್ರದೇಶದಲ್ಲಿ ಕಾವೇರಿ ನೀರು ಪೂರೈಕೆ ಸ್ಥಗಿತಗೊಂಡಿದೆ ಮತ್ತು ರಸ್ತೆಗಳಲ್ಲಿ ದೊಡ್ಡ ಹೊಂಡಗಳಿವೆ. (Cauvery water supply blocked & severe road potholes across Bengaluru, Karnataka).",
-        country_code: "IND",
-        location: "Bengaluru / Karnataka",
-        state: "Karnataka",
-        lat: 12.9716,
-        lng: 77.5946
-      },
-      {
-        language: "hi",
-        audio_name: "hindi_water_pipeline_crisis.wav",
-        transcription: "हमारे ब्लॉक 4 में पीने के पानी की मुख्य पाइपलाइन टूट गई है, 500 घरों में 4 दिन से पानी नहीं आ रहा है।",
-        country_code: "IND",
-        location: "Varanasi District",
-        state: "Uttar Pradesh",
-        lat: 25.3176,
-        lng: 82.9739
-      },
-      {
-        language: "pt",
-        audio_name: "brazil_road_bridge_collapse.wav",
-        transcription: "A ponte de madeira que liga o distrito rural à cidade caiu com a chuva forte. As crianças não conseguem ir para a escola.",
-        country_code: "BRA",
-        location: "Santaluz Municipality",
-        state: "Bahia",
-        lat: -11.2542,
-        lng: -39.3756
-      }
-    ];
-  }
-}
-
 export async function upvoteRequest(requestId) {
   try {
     const res = await fetch(`${API_BASE_URL}/citizen/upvote`, {
@@ -243,7 +181,7 @@ export async function getRequests(countryCode = null, category = null, urgency =
         translated_text: "Cauvery water supply cut off and massive road potholes across Bengaluru and Karnataka region.",
         language: "kn",
         language_name: "Kannada",
-        channel: "voice",
+        channel: "web",
         country_code: "IND",
         country_name: "India",
         category: "Water & Sanitation",
@@ -264,7 +202,7 @@ export async function getRequests(countryCode = null, category = null, urgency =
         translated_text: "Severe waterlogging and broken drainage near Bellandur & Outer Ring Road in Bengaluru, Karnataka.",
         language: "en",
         language_name: "English",
-        channel: "whatsapp",
+        channel: "portal",
         country_code: "IND",
         country_name: "India",
         category: "Flood & Climate Resilience",

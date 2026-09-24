@@ -12,7 +12,7 @@ export const DEMO_USERS = {
     country_code: 'IND',
     country_name: 'India',
     district: 'Varanasi Rural, Uttar Pradesh',
-    clearance_level: 'Verified Citizen Voice',
+    clearance_level: 'Verified Citizen',
     avatar_url: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80'
   },
   government: {

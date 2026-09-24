@@ -1,13 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { 
-  Search, MapPin, Radio, Sparkles, Layers, Activity, Database, 
+  Search, MapPin, FileText, Sparkles, Layers, Activity, Database, 
   Command, ChevronRight, X, Globe
 } from 'lucide-react';
 
 const PALETTE_ITEMS = [
   { id: 'map', title: 'Demand Hotspot Map', group: 'Navigation', icon: MapPin, type: 'nav' },
   { id: 'complaints', title: 'Disability & Grievance Data (CSV)', group: 'Navigation', icon: Activity, type: 'nav' },
-  { id: 'citizen', title: 'Citizen Ingestion Gateway', group: 'Navigation', icon: Radio, type: 'nav' },
+  { id: 'citizen', title: 'Citizen Grievance Gateway', group: 'Navigation', icon: FileText, type: 'nav' },
   { id: 'recommendations', title: 'AI Project Prioritization', group: 'Navigation', icon: Sparkles, type: 'nav' },
   { id: 'misalignment', title: 'Spend Gap Matrix', group: 'Navigation', icon: Layers, type: 'nav' },
   { id: 'simulator', title: 'Policy Scenario Sandbox', group: 'Navigation', icon: Activity, type: 'nav' },

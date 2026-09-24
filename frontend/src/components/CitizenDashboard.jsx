@@ -1,19 +1,19 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
-  Mic, MicOff, Send, Radio, ChevronRight, ThumbsUp, Sparkles, CheckCircle2, AlertCircle, Volume2, MapPin, RefreshCw, User, ShieldCheck, Clock, CheckCircle, FileText, Smartphone
+  Send, ChevronRight, ThumbsUp, Sparkles, CheckCircle2, AlertCircle,
+  MapPin, RefreshCw, User, ShieldCheck, Clock, CheckCircle, FileText, ArrowRight
 } from 'lucide-react';
-import { submitCitizenRequest, submitVoiceRequest, getVoicePresets, upvoteRequest, getRequests } from '../services/api';
+import { submitCitizenRequest, upvoteRequest, getRequests } from '../services/api';
 import { useAuth } from '../context/AuthContext';
+import { Card, CardContent } from './ui/Card';
+import { Button } from './ui/Button';
+import { StatusBadge } from './ui/StatusBadge';
+import { toast } from './ui/Toast';
 
 export default function CitizenDashboard({ selectedCountry, onGoToMap }) {
   const { user } = useAuth();
 
-  const [activeChannel, setActiveChannel] = useState('voice'); // 'voice' | 'text' | 'whatsapp'
-  const [isRecording, setIsRecording] = useState(false);
-  const [recordingDuration, setRecordingDuration] = useState(0);
   const [inputText, setInputText] = useState('');
-  const [inputCategory, setInputCategory] = useState('Water & Sanitation');
-  const [voicePresets, setVoicePresets] = useState([]);
   const [recentResult, setRecentResult] = useState(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const [liveRequests, setLiveRequests] = useState([]);
@@ -31,19 +31,8 @@ export default function CitizenDashboard({ selectedCountry, onGoToMap }) {
     timestamp: new Date().toLocaleTimeString()
   });
 
-  // WhatsApp simulation state
-  const [chatMessages, setChatMessages] = useState([
-    { sender: 'bot', text: '👋 Welcome to CivicPulse Citizen Grievance Gateway. Describe an infrastructure breakdown in your native language via voice note or text.' }
-  ]);
-  const [chatInput, setChatInput] = useState('');
-
-  const timerRef = useRef(null);
-  const mediaRecorderRef = useRef(null);
-  const audioChunksRef = useRef([]);
-
   useEffect(() => {
     detectLocation();
-    loadPresets();
     loadRequestsList();
   }, [selectedCountry, user]);
 
@@ -93,11 +82,6 @@ export default function CitizenDashboard({ selectedCountry, onGoToMap }) {
     }
   };
 
-  async function loadPresets() {
-    const data = await getVoicePresets();
-    setVoicePresets(data);
-  }
-
   async function loadRequestsList() {
     const reqs = await getRequests(selectedCountry === 'ALL' ? null : selectedCountry, filterCategory);
     setLiveRequests(reqs);
@@ -105,84 +89,9 @@ export default function CitizenDashboard({ selectedCountry, onGoToMap }) {
     // Filter my user requests
     if (user) {
       const mine = reqs.filter(r => r.submitter_id === user.id || r.submitter_name === user.name);
-      setMyRequests(mine.length > 0 ? mine : reqs.slice(0, 3)); // Fallback display for presentation
+      setMyRequests(mine.length > 0 ? mine : reqs.slice(0, 3));
     }
   }
-
-  const startRecording = async () => {
-    setIsRecording(true);
-    setRecordingDuration(0);
-    audioChunksRef.current = [];
-
-    timerRef.current = setInterval(() => {
-      setRecordingDuration(prev => prev + 1);
-    }, 1000);
-
-    try {
-      if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-        mediaRecorderRef.current = new MediaRecorder(stream);
-        mediaRecorderRef.current.ondataavailable = (e) => {
-          if (e.data.size > 0) audioChunksRef.current.push(e.data);
-        };
-        mediaRecorderRef.current.start();
-      }
-    } catch (err) {}
-  };
-
-  const stopRecordingAndSubmit = async (customPreset = null) => {
-    setIsRecording(false);
-    clearInterval(timerRef.current);
-    setIsProcessing(true);
-
-    if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
-      try {
-        mediaRecorderRef.current.stop();
-        mediaRecorderRef.current.stream.getTracks().forEach(t => t.stop());
-      } catch (e) {}
-    }
-
-    let result = null;
-    if (customPreset) {
-      const payload = {
-        text: customPreset.transcription,
-        channel: 'voice',
-        country_code: customPreset.country_code,
-        location_name: customPreset.location,
-        latitude: customPreset.lat,
-        longitude: customPreset.lng,
-        citizen_name: user?.name || 'Voice Contributor',
-        submitter_id: user?.id
-      };
-      const processed = await submitCitizenRequest(payload);
-      result = {
-        transcription: customPreset.transcription,
-        detected_language: customPreset.language,
-        language_name: customPreset.language === 'hi' ? 'Hindi (हिंदी)' : customPreset.language === 'pt' ? 'Português' : customPreset.language === 'zh' ? 'Mandarin (中文)' : customPreset.language === 'zu' ? 'isiZulu' : 'Native Dialect',
-        confidence: 0.96,
-        processed_request: processed
-      };
-    } else {
-      const audioBlob = audioChunksRef.current.length > 0 
-        ? new Blob(audioChunksRef.current, { type: 'audio/wav' }) 
-        : null;
-      
-      const cCode = selectedCountry === 'ALL' ? (user?.country_code || 'IND') : selectedCountry;
-      result = await submitVoiceRequest(audioBlob, cCode);
-      if (result && result.processed_request) {
-        result.processed_request.latitude = geoState.latitude;
-        result.processed_request.longitude = geoState.longitude;
-        result.processed_request.location_name = geoState.locationName;
-      }
-    }
-
-    setIsProcessing(false);
-    if (result) {
-      setRecentResult(result);
-      loadRequestsList();
-      setActiveTab('tracking'); // Auto-switch to timeline tracking
-    }
-  };
 
   const handleTextSubmit = async (e) => {
     e.preventDefault();
@@ -192,7 +101,7 @@ export default function CitizenDashboard({ selectedCountry, onGoToMap }) {
     const cCode = selectedCountry === 'ALL' ? (user?.country_code || 'IND') : selectedCountry;
     const payload = {
       text: inputText,
-      channel: 'text',
+      channel: 'web',
       country_code: cCode,
       location_name: geoState.locationName,
       latitude: geoState.latitude,
@@ -201,55 +110,31 @@ export default function CitizenDashboard({ selectedCountry, onGoToMap }) {
       submitter_id: user?.id
     };
 
-    const res = await submitCitizenRequest(payload);
-    setIsProcessing(false);
-    setInputText('');
-    setRecentResult({
-      transcription: inputText,
-      detected_language: 'auto',
-      language_name: 'Auto Identified',
-      confidence: 0.98,
-      processed_request: res
-    });
-    loadRequestsList();
-    setActiveTab('tracking');
-  };
-
-  const handleWhatsAppSend = async (e) => {
-    e.preventDefault();
-    if (!chatInput.trim()) return;
-
-    const userMsg = chatInput;
-    setChatInput('');
-    setChatMessages(prev => [...prev, { sender: 'user', text: userMsg }]);
-
-    const cCode = selectedCountry === 'ALL' ? (user?.country_code || 'IND') : selectedCountry;
-    const payload = {
-      text: userMsg,
-      channel: 'whatsapp',
-      country_code: cCode,
-      location_name: geoState.locationName,
-      latitude: geoState.latitude,
-      longitude: geoState.longitude,
-      citizen_name: user?.name || 'WhatsApp Contributor',
-      submitter_id: user?.id
-    };
-
-    const res = await submitCitizenRequest(payload);
-    setChatMessages(prev => [
-      ...prev,
-      { 
-        sender: 'bot', 
-        text: `✅ Grievance Registered (ID: ${res.id}). Automatically categorized as '${res.category}' with ${res.urgency} Urgency. Coordinates locked to [${res.latitude}, ${res.longitude}]. Transmitted to Government GIS Command Center!` 
-      }
-    ]);
-    loadRequestsList();
+    try {
+      const res = await submitCitizenRequest(payload);
+      setIsProcessing(false);
+      setInputText('');
+      setRecentResult({
+        transcription: inputText,
+        detected_language: 'auto',
+        language_name: 'Natural Language AI',
+        confidence: 0.98,
+        processed_request: res
+      });
+      toast.success(`Grievance #${res.id} registered and clustered!`);
+      loadRequestsList();
+      setActiveTab('tracking');
+    } catch (err) {
+      setIsProcessing(false);
+      toast.error('Failed to submit grievance. Please try again.');
+    }
   };
 
   const handleUpvote = async (reqId) => {
     const res = await upvoteRequest(reqId);
     if (res) {
       setLiveRequests(prev => prev.map(r => r.id === reqId ? { ...r, upvotes: res.upvotes } : r));
+      toast.success('Grievance petition upvoted!');
     }
   };
 
@@ -307,17 +192,17 @@ export default function CitizenDashboard({ selectedCountry, onGoToMap }) {
         <div className="flex items-center p-1 bg-[#FAF6F0] rounded-2xl border border-[#E8E0D5]">
           <button
             onClick={() => setActiveTab('file')}
-            className={`px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5 ${
+            className={`px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer ${
               activeTab === 'file' ? 'bg-[#2C1810] text-[#FDFBF7] shadow-sm' : 'text-[#8C7A70] hover:text-[#2C1810]'
             }`}
           >
-            <Mic className="w-3.5 h-3.5" />
+            <FileText className="w-3.5 h-3.5" />
             <span>File Grievance</span>
           </button>
 
           <button
             onClick={() => setActiveTab('tracking')}
-            className={`px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5 ${
+            className={`px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer ${
               activeTab === 'tracking' ? 'bg-[#2C1810] text-[#FDFBF7] shadow-sm' : 'text-[#8C7A70] hover:text-[#2C1810]'
             }`}
           >
@@ -327,7 +212,7 @@ export default function CitizenDashboard({ selectedCountry, onGoToMap }) {
 
           <button
             onClick={() => setActiveTab('feed')}
-            className={`px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5 ${
+            className={`px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer ${
               activeTab === 'feed' ? 'bg-[#2C1810] text-[#FDFBF7] shadow-sm' : 'text-[#8C7A70] hover:text-[#2C1810]'
             }`}
           >
@@ -360,13 +245,15 @@ export default function CitizenDashboard({ selectedCountry, onGoToMap }) {
           </div>
 
           <div className="flex items-center gap-2">
-            <button
+            <Button
+              variant="secondary"
+              size="sm"
               onClick={detectLocation}
-              className="btn-secondary text-xs py-1.5 px-3 flex items-center gap-1.5"
+              icon={RefreshCw}
+              loading={geoState.status === 'detecting'}
             >
-              <RefreshCw className={`w-3.5 h-3.5 ${geoState.status === 'detecting' ? 'animate-spin' : ''}`} />
-              <span>Auto GPS</span>
-            </button>
+              Auto GPS
+            </Button>
           </div>
         </div>
 
@@ -378,7 +265,7 @@ export default function CitizenDashboard({ selectedCountry, onGoToMap }) {
 
           <button
             onClick={() => handleSelectLocationPreset('Karnataka')}
-            className={`px-3 py-1 rounded-full font-bold transition shrink-0 flex items-center gap-1.5 ${
+            className={`px-3 py-1 rounded-full font-bold transition shrink-0 flex items-center gap-1.5 cursor-pointer ${
               geoState.locationName.includes('Karnataka')
                 ? 'bg-[#E11D48] text-white shadow-sm ring-2 ring-[#E11D48]/30'
                 : 'bg-white text-[#9F1239] border border-[#FECDD3] hover:bg-[#FFE4E6]'
@@ -391,7 +278,7 @@ export default function CitizenDashboard({ selectedCountry, onGoToMap }) {
             <button
               key={st}
               onClick={() => handleSelectLocationPreset(st)}
-              className={`px-2.5 py-1 rounded-full font-semibold border transition shrink-0 ${
+              className={`px-2.5 py-1 rounded-full font-semibold border transition shrink-0 cursor-pointer ${
                 geoState.locationName.includes(st)
                   ? 'bg-[#2C1810] text-white border-[#2C1810]'
                   : 'bg-white text-[#5C4A42] border-[#E8E0D5] hover:border-[#D4A373]'
@@ -410,217 +297,89 @@ export default function CitizenDashboard({ selectedCountry, onGoToMap }) {
           {/* Main Ingestion Card (8 Cols) */}
           <div className="lg:col-span-8 card-coffee p-8 space-y-6">
             
-            {/* Channel Switcher */}
-            <div className="flex items-center justify-between border-b border-[#E8E0D5] pb-4">
-              <div>
-                <h3 className="text-base font-bold text-[#2C1810]">Submit Infrastructure Issue</h3>
-                <p className="text-xs text-[#5C4A42]">Voice notes auto-translated from 10+ BRICS dialects into GIS metadata.</p>
-              </div>
-
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={() => setActiveChannel('voice')}
-                  className={`px-3 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 ${
-                    activeChannel === 'voice' ? 'bg-[#D4A373] text-[#2C1810] shadow-sm' : 'bg-[#FAF6F0] text-[#5C4A42]'
-                  }`}
-                >
-                  <Mic className="w-3.5 h-3.5" />
-                  <span>Voice Note</span>
-                </button>
-
-                <button
-                  onClick={() => setActiveChannel('text')}
-                  className={`px-3 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 ${
-                    activeChannel === 'text' ? 'bg-[#D4A373] text-[#2C1810] shadow-sm' : 'bg-[#FAF6F0] text-[#5C4A42]'
-                  }`}
-                >
-                  <FileText className="w-3.5 h-3.5" />
-                  <span>Text Form</span>
-                </button>
-
-                <button
-                  onClick={() => setActiveChannel('whatsapp')}
-                  className={`px-3 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 ${
-                    activeChannel === 'whatsapp' ? 'bg-[#25D366] text-white shadow-sm' : 'bg-[#FAF6F0] text-[#5C4A42]'
-                  }`}
-                >
-                  <Smartphone className="w-3.5 h-3.5" />
-                  <span>WhatsApp Bot</span>
-                </button>
-              </div>
+            <div className="border-b border-[#E8E0D5] pb-4">
+              <h3 className="text-base font-bold text-[#2C1810]">Submit Infrastructure Grievance</h3>
+              <p className="text-xs text-[#5C4A42] mt-0.5">
+                Report local breakdowns in water, roads, clinics, power, or sanitation for automated AI classification and GIS dispatch.
+              </p>
             </div>
 
-            {/* CHANNEL 1: VOICE */}
-            {activeChannel === 'voice' && (
-              <div className="space-y-6">
-                <div className="bg-[#FAF6F0] p-8 rounded-2xl border border-[#E8E0D5] text-center space-y-4">
-                  <div className="w-20 h-20 mx-auto rounded-full bg-gradient-to-br from-[#2C1810] to-[#5C4A42] flex items-center justify-center text-[#FDFBF7] shadow-lg relative">
-                    {isRecording ? (
-                      <MicOff className="w-8 h-8 text-[#B54A4A] animate-pulse" />
-                    ) : (
-                      <Mic className="w-8 h-8 text-[#D4A373]" />
-                    )}
-                    {isRecording && (
-                      <span className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-[#B54A4A] animate-ping" />
-                    )}
-                  </div>
-
-                  <div>
-                    <h4 className="text-sm font-bold text-[#2C1810]">
-                      {isRecording ? `Recording Audio... (${recordingDuration}s)` : 'Speak in your native dialect'}
-                    </h4>
-                    <p className="text-xs text-[#5C4A42] mt-1 max-w-md mx-auto">
-                      Our neural speech-to-text pipeline identifies language, translates to English, and classifies sector urgency.
-                    </p>
-                  </div>
-
-                  <div className="flex items-center justify-center gap-3">
-                    {!isRecording ? (
-                      <button onClick={startRecording} className="btn-primary text-xs py-2.5 px-6">
-                        <Mic className="w-4 h-4" />
-                        <span>Start Voice Recording</span>
-                      </button>
-                    ) : (
-                      <button onClick={() => stopRecordingAndSubmit()} className="btn-accent text-xs py-2.5 px-6 bg-[#B54A4A] hover:bg-[#963B3B] text-white">
-                        <Square className="w-4 h-4 fill-current" />
-                        <span>Stop & Process Audio</span>
-                      </button>
-                    )}
-                  </div>
-                </div>
-
-                {/* Multilingual Voice Preset Cards */}
-                <div>
-                  <div className="flex items-center justify-between mb-3">
-                    <span className="text-xs font-bold text-[#2C1810]">Or Test Pre-Recorded Multilingual Grievances:</span>
-                  </div>
-
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    {voicePresets.map((preset, i) => (
-                      <div 
-                        key={i}
-                        onClick={() => stopRecordingAndSubmit(preset)}
-                        className="p-3.5 rounded-xl border border-[#E8E0D5] bg-[#FFFFFF] hover:border-[#D4A373] hover:shadow-md transition cursor-pointer space-y-2 group"
-                      >
-                        <div className="flex items-center justify-between text-xs">
-                          <span className="font-bold text-[#2C1810] flex items-center gap-1.5">
-                            <Volume2 className="w-3.5 h-3.5 text-[#D4A373] group-hover:scale-110 transition" />
-                            {preset.language === 'kn' ? '🇮🇳 Kannada (ಕನ್ನಡ)' : preset.language === 'hi' ? '🇮🇳 Hindi (हिंदी)' : preset.language === 'pt' ? '🇧🇷 Português' : preset.language === 'zh' ? '🇨🇳 Mandarin (中文)' : '🇿🇦 isiZulu'}
-                          </span>
-                          <span className="text-[10px] text-[#8C7A70] font-mono">{preset.location}</span>
-                        </div>
-                        <p className="text-xs text-[#5C4A42] line-clamp-2 italic">
-                          "{preset.transcription}"
-                        </p>
-                      </div>
-                    ))}
-                  </div>
+            {/* Direct Text Grievance Form */}
+            <form onSubmit={handleTextSubmit} className="space-y-5">
+              <div>
+                <label className="block text-xs font-bold text-[#2C1810] mb-2">
+                  Detailed Grievance Description <span className="text-[#B54A4A]">*</span>
+                </label>
+                <textarea
+                  rows={6}
+                  value={inputText}
+                  onChange={(e) => setInputText(e.target.value)}
+                  placeholder="Describe the infrastructure breakdown in detail (e.g., broken drinking water pipeline, flooded road, non-functional primary clinic, recurring power cuts), noting affected population and exact street/village landmarks..."
+                  className="w-full p-4 rounded-xl border border-[#E8E0D5] bg-[#FAF6F0]/40 text-xs text-[#2C1810] focus:ring-2 focus:ring-[#D4A373] focus:border-[#D4A373] outline-none leading-relaxed transition resize-y"
+                  required
+                />
+                <div className="flex items-center justify-between mt-1.5 text-[11px] text-[#8C7A70]">
+                  <span>AI will automatically detect infrastructure sector and assess urgency level.</span>
+                  <span>{inputText.length} characters</span>
                 </div>
               </div>
-            )}
 
-            {/* CHANNEL 2: TEXT FORM */}
-            {activeChannel === 'text' && (
-              <form onSubmit={handleTextSubmit} className="space-y-4">
-                <div>
-                  <label className="block text-xs font-bold text-[#2C1810] mb-1.5">
-                    Infrastructure Problem Description
-                  </label>
-                  <textarea
-                    rows={4}
-                    value={inputText}
-                    onChange={(e) => setInputText(e.target.value)}
-                    placeholder="Describe the breakdown, location details, affected population, or severity..."
-                    className="w-full p-4 rounded-xl border border-[#E8E0D5] bg-[#FAF6F0]/50 text-xs text-[#2C1810] focus:ring-2 focus:ring-[#D4A373] outline-none"
-                  />
-                </div>
-
-                <div className="flex items-center justify-between pt-2">
-                  <span className="text-xs text-[#5C4A42] flex items-center gap-1.5">
-                    <MapPin className="w-3.5 h-3.5 text-[#A67B5B]" />
-                    Auto-attaching GPS: {geoState.latitude}°, {geoState.longitude}°
+              {/* Location Verification Strip */}
+              <div className="p-3.5 rounded-xl bg-[#FAF6F0] border border-[#E8E0D5] flex items-center justify-between text-xs">
+                <div className="flex items-center gap-2 text-[#5C4A42]">
+                  <MapPin className="w-4 h-4 text-[#A67B5B] shrink-0" />
+                  <span>
+                    Linked GIS Coordinates: <strong>[{geoState.latitude}° N, {geoState.longitude}° E]</strong> ({geoState.locationName})
                   </span>
-
-                  <button
-                    type="submit"
-                    disabled={isProcessing || !inputText.trim()}
-                    className="btn-primary text-xs py-2.5 px-6"
-                  >
-                    <Send className="w-4 h-4" />
-                    <span>Submit Grievance</span>
-                  </button>
                 </div>
-              </form>
-            )}
-
-            {/* CHANNEL 3: WHATSAPP BOT SIMULATOR */}
-            {activeChannel === 'whatsapp' && (
-              <div className="bg-[#E5DDD5] rounded-2xl border border-[#C8BDB0] overflow-hidden flex flex-col h-[400px]">
-                <div className="bg-[#075E54] text-white p-3.5 px-4 flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center font-bold text-xs">
-                    CP
-                  </div>
-                  <div>
-                    <h4 className="text-xs font-bold">CivicPulse Grievance Bot</h4>
-                    <p className="text-[10px] text-white/80">Online • Auto-detecting coordinates</p>
-                  </div>
-                </div>
-
-                <div className="flex-1 p-4 overflow-y-auto space-y-3">
-                  {chatMessages.map((msg, idx) => (
-                    <div
-                      key={idx}
-                      className={`max-w-[85%] p-3 rounded-2xl text-xs ${
-                        msg.sender === 'user'
-                          ? 'bg-[#DCF8C6] text-[#2C1810] ml-auto rounded-tr-none shadow-sm'
-                          : 'bg-[#FFFFFF] text-[#2C1810] mr-auto rounded-tl-none shadow-sm'
-                      }`}
-                    >
-                      <p>{msg.text}</p>
-                    </div>
-                  ))}
-                </div>
-
-                <form onSubmit={handleWhatsAppSend} className="p-3 bg-[#F0F0F0] border-t border-[#D9D9D9] flex items-center gap-2">
-                  <input
-                    type="text"
-                    value={chatInput}
-                    onChange={(e) => setChatInput(e.target.value)}
-                    placeholder="Type grievance message in any language..."
-                    className="flex-1 px-4 py-2 rounded-full border border-gray-300 text-xs text-[#2C1810] outline-none"
-                  />
-                  <button type="submit" className="p-2.5 rounded-full bg-[#075E54] text-white hover:bg-[#128C7E]">
-                    <Send className="w-4 h-4" />
-                  </button>
-                </form>
+                <span className="text-[10px] font-mono text-[#5A8F6E] bg-[#E8F5E9] px-2 py-0.5 rounded font-semibold border border-[#A5D6A7]">
+                  GPS Verified
+                </span>
               </div>
-            )}
+
+              <div className="flex items-center justify-end pt-2">
+                <Button
+                  type="submit"
+                  size="md"
+                  disabled={isProcessing || !inputText.trim()}
+                  loading={isProcessing}
+                  icon={Send}
+                  className="px-8 shadow-sm"
+                >
+                  Submit Grievance to Command Center
+                </Button>
+              </div>
+            </form>
 
           </div>
 
-          {/* AI NLP Live Processing Result Card (4 Cols) */}
+          {/* AI Live Processing Result Card (4 Cols) */}
           <div className="lg:col-span-4 card-coffee p-6 space-y-6">
             <h3 className="text-sm font-bold text-[#2C1810] flex items-center gap-2">
               <Sparkles className="w-4 h-4 text-[#D4A373]" />
-              AI Multilingual Processing Feedback
+              AI Infrastructure Analysis Feedback
             </h3>
 
             {isProcessing ? (
               <div className="p-8 text-center space-y-3">
                 <RefreshCw className="w-8 h-8 text-[#D4A373] animate-spin mx-auto" />
-                <p className="text-xs font-bold text-[#2C1810]">Analyzing Neural Audio & Context...</p>
-                <p className="text-[11px] text-[#5C4A42]">Identifying language, calculating urgency score, mapping to district deficits.</p>
+                <p className="text-xs font-bold text-[#2C1810]">Analyzing Grievance & Context...</p>
+                <p className="text-[11px] text-[#5C4A42]">Classifying infrastructure sector, evaluating urgency severity, mapping to district deficits.</p>
               </div>
             ) : recentResult ? (
               <div className="space-y-4 text-xs">
                 <div className="p-4 rounded-xl bg-[#FAF6F0] border border-[#E8E0D5] space-y-2">
                   <div className="flex items-center justify-between text-[#8C7A70]">
-                    <span>Language Detected</span>
+                    <span>Analysis Engine</span>
                     <span className="font-bold text-[#2C1810]">{recentResult.language_name}</span>
                   </div>
                   <div className="flex items-center justify-between text-[#8C7A70]">
-                    <span>Urgency Category</span>
+                    <span>Detected Category</span>
                     <span className="font-bold text-[#B54A4A]">{recentResult.processed_request.category}</span>
+                  </div>
+                  <div className="flex items-center justify-between text-[#8C7A70]">
+                    <span>Urgency Level</span>
+                    <StatusBadge status={recentResult.processed_request.urgency || 'High'} />
                   </div>
                   <div className="flex items-center justify-between text-[#8C7A70]">
                     <span>Severity Score</span>
@@ -650,7 +409,7 @@ export default function CitizenDashboard({ selectedCountry, onGoToMap }) {
             ) : (
               <div className="p-6 rounded-xl bg-[#FAF6F0] border border-[#E8E0D5] text-center text-xs text-[#5C4A42] space-y-2">
                 <AlertCircle className="w-6 h-6 text-[#D4A373] mx-auto" />
-                <p>Submit a grievance to inspect real-time AI classification & auto-GPS mapping results.</p>
+                <p>Submit a grievance on the left to inspect real-time AI classification & auto-GPS clustering results.</p>
               </div>
             )}
           </div>
@@ -685,7 +444,7 @@ export default function CitizenDashboard({ selectedCountry, onGoToMap }) {
                     <span className="text-[10px] text-[#8C7A70]">{req.location_name} ({req.latitude}°, {req.longitude}°)</span>
                     <button
                       onClick={() => onGoToMap && onGoToMap(req.state_province || 'Karnataka')}
-                      className="px-2.5 py-1 rounded-lg bg-[#FAF6F0] hover:bg-[#D4A373] text-[#2C1810] text-[10px] font-bold border border-[#E8E0D5] flex items-center gap-1 transition mt-1"
+                      className="px-2.5 py-1 rounded-lg bg-[#FAF6F0] hover:bg-[#D4A373] text-[#2C1810] text-[10px] font-bold border border-[#E8E0D5] flex items-center gap-1 transition mt-1 cursor-pointer"
                     >
                       <MapPin className="w-3 h-3 text-[#E11D48]" />
                       <span>View Spot on Map</span>
@@ -699,7 +458,7 @@ export default function CitizenDashboard({ selectedCountry, onGoToMap }) {
                     1. Grievance Filed
                   </div>
                   <div className="p-2 rounded-xl bg-[#E8F5E9] text-[#2E7D32] border border-[#A5D6A7] font-semibold">
-                    2. AI NLP Categorized
+                    2. AI Categorized
                   </div>
                   <div className="p-2 rounded-xl bg-[#E8F5E9] text-[#2E7D32] border border-[#A5D6A7] font-semibold">
                     3. Hotspot Clustered
@@ -745,17 +504,18 @@ export default function CitizenDashboard({ selectedCountry, onGoToMap }) {
                   <span className="text-[10px] text-[#8C7A70] font-mono">{req.location_name}</span>
                 </div>
                 <p className="text-xs text-[#2C1810] font-medium leading-relaxed">
-                  "{req.translated_text}"
+                  "{req.translated_text || req.original_text}"
                 </p>
                 <div className="flex items-center justify-between pt-2 border-t border-[#E8E0D5]">
                   <span className="text-[11px] text-[#5C4A42]">Severity Score: {(req.urgency_score * 100).toFixed(0)}/100</span>
-                  <button
+                  <Button
+                    variant="secondary"
+                    size="sm"
                     onClick={() => handleUpvote(req.id)}
-                    className="btn-secondary text-xs py-1.5 px-3 flex items-center gap-1.5"
+                    icon={ThumbsUp}
                   >
-                    <ThumbsUp className="w-3.5 h-3.5 text-[#D4A373]" />
-                    <span>Upvote ({req.upvotes})</span>
-                  </button>
+                    Upvote ({req.upvotes})
+                  </Button>
                 </div>
               </div>
             ))}

@@ -247,7 +247,7 @@ export default function GovernmentDashboard({
             <div className="flex items-center justify-between">
               <div>
                 <h3 className="text-base font-bold text-[#2C1810]">Live Citizen Grievance Stream</h3>
-                <p className="text-xs text-[#5C4A42]">Real-time incoming petitions auto-localized by GPS & speech AI.</p>
+                <p className="text-xs text-[#5C4A42]">Real-time incoming petitions auto-localized by GPS & AI analytics.</p>
               </div>
 
               <select

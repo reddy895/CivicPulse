@@ -13,6 +13,7 @@ import DPGHub from './components/DPGHub';
 import DisabilityComplaintsView from './components/DisabilityComplaintsView';
 import AICopilotModal from './components/AICopilotModal';
 import CommandPalette from './components/CommandPalette';
+import ToastContainer from './components/ui/Toast';
 import { ShieldCheck } from 'lucide-react';
 
 function AppContent() {
@@ -180,6 +181,9 @@ function AppContent() {
         defaultMode={copilotMode}
         targetProject={copilotTargetProject}
       />
+
+      {/* Global Toast Notifications Container */}
+      <ToastContainer />
 
     </div>
   );

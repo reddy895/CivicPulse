@@ -8,10 +8,10 @@ const DPGA_CRITERIA = [
   { id: '1', title: 'Open Source License', status: 'Compliant', desc: 'Apache 2.0 / MIT permissively licensed code repository.' },
   { id: '2', title: 'Open Standard Data Model', status: 'Compliant', desc: 'Conforms to GeoJSON RFC 7946, W3C Schema.org, and OpenAPI 3.1 specs.' },
   { id: '3', title: 'Open Data Extractability', status: 'Compliant', desc: 'All demand hotspots downloadable in machine-readable GeoJSON and CSV formats.' },
-  { id: '4', title: 'Differential Privacy & PII Scrubbing', status: 'Compliant', desc: 'Zero PII stored; voice audio hashed and spatial coords perturbed by 500m radius.' },
+  { id: '4', title: 'Differential Privacy & PII Scrubbing', status: 'Compliant', desc: 'Zero PII stored; text evidence anonymized and spatial coords perturbed by 500m radius.' },
   { id: '5', title: 'Adherence to Privacy Regulations', status: 'Compliant', desc: 'Compliant with Indian DPDP Act, Brazilian LGPD, and international privacy laws.' },
   { id: '6', title: 'UN SDG Alignment', status: 'Compliant', desc: 'Directly targets SDG 9 (Infrastructure), SDG 6 (Water), SDG 7 (Energy), and SDG 11.' },
-  { id: '7', title: 'Multi-lingual Linguistic Inclusivity', status: 'Compliant', desc: 'Native support for 10+ BRICS languages across voice, SMS, and messaging.' },
+  { id: '7', title: 'Multi-lingual Linguistic Inclusivity', status: 'Compliant', desc: 'Native support for 10+ BRICS regional languages across text intake and translation.' },
   { id: '8', title: 'Do No Harm & Ethical AI', status: 'Compliant', desc: 'Transparent algorithmic decision weights preventing regional discrimination.' },
   { id: '9', title: 'Interoperability & Modular API', status: 'Compliant', desc: 'Plugs seamlessly into national e-Governance frameworks and GIS platforms.' }
 ];

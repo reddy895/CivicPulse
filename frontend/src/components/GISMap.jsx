@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { 
-  MapPin, ChevronRight, FileText, Activity, AlertTriangle, CheckCircle2, 
-  MessageSquare, Volume2, Smartphone, Send, ThumbsUp, Layers, Sparkles, Filter
+  MapPin, ChevronRight, FileText, Activity, MessageSquare, ThumbsUp
 } from 'lucide-react';
 import { getHotspots, getRequests, upvoteRequest } from '../services/api';
 import L from 'leaflet';
@@ -547,13 +546,7 @@ export default function GISMap({ selectedCountry, onSelectProject, onOpenCopilot
                             {/* Card Header: Category + Urgency + Channel */}
                             <div className="flex items-center justify-between text-xs">
                               <span className="font-bold text-[#2C1810] flex items-center gap-1.5">
-                                {comp.channel === 'voice' ? (
-                                  <Volume2 className="w-3.5 h-3.5 text-[#D4A373]" />
-                                ) : comp.channel === 'whatsapp' ? (
-                                  <Smartphone className="w-3.5 h-3.5 text-[#25D366]" />
-                                ) : (
-                                  <MessageSquare className="w-3.5 h-3.5 text-[#6F4E37]" />
-                                )}
+                                <MessageSquare className="w-3.5 h-3.5 text-[#6F4E37]" />
                                 {comp.category}
                               </span>
 

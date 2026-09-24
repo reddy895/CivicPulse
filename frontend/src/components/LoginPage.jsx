@@ -139,7 +139,7 @@ export default function LoginPage() {
                         {activeRoleTab === 'citizen' && <span className="text-xs text-[#E6CCB2] font-normal">Active Mode</span>}
                       </h3>
                       <p className="text-xs text-[#D4C3B7] mt-1 leading-normal">
-                        Auto-detects GPS coordinates, supports 10+ BRICS speech/text dialects, tracks resolution stages live.
+                        Auto-detects GPS coordinates, AI grievance categorization, tracks resolution stages live.
                       </p>
                     </div>
                   </div>
@@ -241,7 +241,7 @@ export default function LoginPage() {
                 <p className="text-xs text-[#5C4A42] mt-1">
                   {activeRoleTab === 'government' 
                     ? 'Authorized access for ministry directors, municipal engineers, and policy auditors.'
-                    : 'Submit voice/text grievances, auto-detect location, and monitor real-time resolution stages.'
+                    : 'Submit infrastructure grievances, auto-detect location, and monitor real-time resolution stages.'
                   }
                 </p>
               </div>

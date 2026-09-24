@@ -39,7 +39,7 @@ const CITIZEN_SECTIONS = [
   {
     group: 'CITIZEN SERVICES',
     items: [
-      { id: 'citizen', label: 'File Grievance Gateway', icon: Radio },
+      { id: 'citizen', label: 'File Grievance Gateway', icon: FileText },
       { id: 'map', label: 'National Demand Map', icon: MapPin },
       { id: 'complaints', label: 'Community Signals & Issues', icon: Users },
       { id: 'dpg', label: 'DPG Standards & Open Data', icon: Database }
