@@ -3,7 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from .api.endpoints import router as api_router
 
 app = FastAPI(
-    title="CivicPulse DPG - Multilingual AI Infrastructure Alignment Platform",
+    title="NagarMithra DPG - Multilingual AI Infrastructure Alignment Platform",
     description=(
         "A Digital Public Good (DPG) connecting citizen grassroots development requests with national "
         "infrastructure priorities across BRICS nations using Multilingual AI, Geospatial Clustering, "
@@ -30,7 +30,7 @@ app.include_router(api_router)
 @app.get("/")
 async def root():
     return {
-        "name": "CivicPulse DPG Core Engine",
+        "name": "NagarMithra DPG Core Engine",
         "status": "Online",
         "docs": "/docs",
         "standards": "/api/dpg/standards"
@@ -41,7 +41,7 @@ async def root():
 async def health_check():
     return {
         "status": "healthy",
-        "service": "CivicPulse DPG Backend",
+        "service": "NagarMithra DPG Backend",
         "version": "1.0.0"
     }
 

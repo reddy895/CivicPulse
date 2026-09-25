@@ -52,12 +52,19 @@ export default function PublicLayout() {
       >
         <div className="container-xl flex items-center h-16 gap-6">
           {/* Logo */}
-          <Link to="/" className="flex items-center shrink-0 group mr-2" aria-label="CivicPulse">
+          <Link to="/" className="flex items-center gap-2.5 shrink-0 group mr-2" aria-label="NagarMithra">
             <img 
               src={brandLogo} 
-              alt="CivicPulse - Citizen Data • Stronger Communities" 
-              className="h-10 sm:h-11 w-auto object-contain transition-transform duration-200 group-hover:scale-105 rounded-md" 
+              alt="NagarMithra - Citizen Data • Stronger Communities" 
+              className="h-9 sm:h-10 w-auto object-contain transition-transform duration-200 group-hover:scale-105 rounded-full" 
             />
+            <span className={`font-extrabold text-base tracking-tight transition-colors duration-300 ${
+              scrolled 
+                ? 'text-[#6F4E37] group-hover:text-[#4A3222]' 
+                : 'text-white group-hover:text-[#FDFBF7]'
+            }`}>
+              NagarMithra
+            </span>
           </Link>
 
           {/* Desktop Nav Center */}

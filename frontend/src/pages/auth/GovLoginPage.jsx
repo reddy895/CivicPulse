@@ -45,7 +45,7 @@ export default function GovLoginPage() {
         {/* Back Link */}
         <Link to="/" className="inline-flex items-center gap-2 text-xs font-semibold text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors">
           <ArrowLeft className="w-4 h-4" />
-          <span>Back to CivicPulse Public</span>
+          <span>Back to NagarMithra Public</span>
         </Link>
 
         {/* Demo Banner */}
@@ -66,8 +66,8 @@ export default function GovLoginPage() {
           <div className="text-center space-y-2">
             <img 
               src={brandLogo} 
-              alt="CivicPulse" 
-              className="h-10 mx-auto object-contain mb-3" 
+              alt="NagarMithra" 
+              className="h-16 w-16 mx-auto object-contain mb-3 rounded-full shadow-sm" 
             />
             <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-[var(--bg-secondary)] text-[var(--accent-primary)] border border-[var(--border-warm)]">
               <Building2 className="w-3.5 h-3.5 text-[var(--accent-primary)]" />

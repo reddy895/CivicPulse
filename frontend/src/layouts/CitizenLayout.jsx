@@ -35,12 +35,15 @@ export default function CitizenLayout() {
       <header className="sticky top-0 z-50 bg-[#1E110A] border-b border-[#D4A373]/20 shadow-[var(--shadow-xs)]">
         <div className="container-xl flex items-center h-16 gap-4">
           {/* Logo */}
-          <Link to="/" className="flex items-center shrink-0" aria-label="CivicPulse">
+          <Link to="/" className="flex items-center gap-2.5 shrink-0 group" aria-label="NagarMithra">
             <img 
               src={brandLogo} 
-              alt="CivicPulse - Citizen Data • Stronger Communities" 
-              className="h-10 sm:h-11 w-auto object-contain transition-transform duration-200 hover:scale-105 rounded-md" 
+              alt="NagarMithra - Citizen Data • Stronger Communities" 
+              className="h-9 sm:h-10 w-auto object-contain transition-transform duration-200 group-hover:scale-105 rounded-full" 
             />
+            <span className="font-extrabold text-base tracking-tight text-white hidden sm:inline-block">
+              NagarMithra
+            </span>
           </Link>
 
           {/* Nav */}

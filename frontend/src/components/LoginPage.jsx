@@ -72,13 +72,13 @@ export default function LoginPage() {
             <div className="w-11 h-11 rounded-full bg-black p-0.5 shadow-md border-2 border-[#D4A373]/60 flex items-center justify-center shrink-0 overflow-hidden">
               <img 
                 src={logoImg} 
-                alt="CivicPulse Logo" 
+                alt="NagarMithra Logo" 
                 className="w-full h-full rounded-full object-cover" 
               />
             </div>
             <div>
               <h1 className="text-lg font-bold tracking-tight text-[#2C1810] flex items-center gap-2">
-                CivicPulse DPG
+                NagarMithra DPG
                 <span className="text-xs font-normal px-2 py-0.5 rounded-full bg-[#E8F5E9] text-[#2E7D32] border border-[#A5D6A7]">
                   DPGA Standard v1.4.0
                 </span>
@@ -117,7 +117,7 @@ export default function LoginPage() {
               </h2>
 
               <p className="text-sm text-[#D4C3B7] leading-relaxed mb-8">
-                CivicPulse provides tailored, role-secured portals connecting citizen grassroots demands directly with national government planning maps in real time.
+                NagarMithra provides tailored, role-secured portals connecting citizen grassroots demands directly with national government planning maps in real time.
               </p>
 
               <div className="space-y-4">
@@ -442,7 +442,7 @@ export default function LoginPage() {
       {/* Footer */}
       <footer className="bg-[#FFFFFF] border-t border-[#E8E0D5] py-4 px-8 text-center text-xs text-[#8C7A70]">
         <div className="max-w-[1440px] mx-auto flex flex-col sm:flex-row items-center justify-between gap-2">
-          <span>CivicPulse DPG • sovereign BRICS AI Multilingual Gateway & Decision Intelligence</span>
+          <span>NagarMithra DPG • sovereign BRICS AI Multilingual Gateway & Decision Intelligence</span>
           <span className="text-[#5A8F6E] font-semibold">DPGA Standard v1.4.0 Certified</span>
         </div>
       </footer>

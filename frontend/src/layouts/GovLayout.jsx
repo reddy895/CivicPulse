@@ -35,14 +35,17 @@ export default function GovLayout() {
           
           {/* Brand Logo & Authority Label */}
           <div className="flex items-center gap-3 shrink-0">
-            <Link to="/gov-demo" className="flex items-center shrink-0" aria-label="CivicPulse Government">
+            <Link to="/gov-demo" className="flex items-center gap-2 shrink-0" aria-label="NagarMithra Government">
               <img 
                 src={brandLogo} 
-                alt="CivicPulse" 
+                alt="NagarMithra" 
                 className="h-9 sm:h-10 w-auto object-contain transition-transform duration-150 hover:scale-105 rounded-md" 
               />
+              <span className="font-extrabold text-base tracking-tight text-white hidden sm:inline-block">
+                NagarMithra
+              </span>
             </Link>
-            <span className="hidden sm:inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold tracking-wider uppercase bg-[#D4A373]/15 text-[#D4A373] border border-[#D4A373]/30 whitespace-nowrap">
+            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold tracking-wider uppercase bg-[#D4A373]/15 text-[#D4A373] border border-[#D4A373]/30 whitespace-nowrap">
               Gov Portal
             </span>
           </div>

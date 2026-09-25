@@ -66,7 +66,7 @@ export default function AICopilotModal({ isOpen, onClose, selectedCountry, defau
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `CivicPulse_Policy_Intelligence_${selectedCountry}_${Date.now()}.md`;
+    a.download = `NagarMithra_Policy_Intelligence_${selectedCountry}_${Date.now()}.md`;
     a.click();
     URL.revokeObjectURL(url);
   };
@@ -81,13 +81,13 @@ export default function AICopilotModal({ isOpen, onClose, selectedCountry, defau
             <div className="w-9 h-9 rounded-full bg-black p-0.5 shadow-sm border border-[#D4A373]/60 flex items-center justify-center shrink-0 overflow-hidden">
               <img 
                 src={logoImg} 
-                alt="CivicPulse Logo" 
+                alt="NagarMithra Logo" 
                 className="w-full h-full rounded-full object-cover" 
               />
             </div>
             <div>
               <h3 className="text-sm font-bold text-[#2C1810] flex items-center gap-2">
-                CivicPulse AI Policy Copilot
+                NagarMithra AI Policy Copilot
                 <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-[#E8F5E9] text-[#2E7D32] border border-[#A5D6A7]">Active</span>
               </h3>
               <p className="text-xs text-[#5C4A42]">Explainable Infrastructure Decision Intelligence · {selectedCountry}</p>

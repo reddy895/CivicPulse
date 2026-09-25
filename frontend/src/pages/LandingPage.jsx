@@ -540,7 +540,7 @@ export default function LandingPage({ onNavigate }) {
                 {t('landing.impact_title')}
               </h2>
               <p className="mt-4 text-[rgba(255,255,255,0.65)] leading-relaxed">
-                Government officers use CivicPulse to review evidence, assess AI-classified priorities, 
+                Government officers use NagarMithra to review evidence, assess AI-classified priorities, 
                 assign departments, and resolve infrastructure issues — with full transparency to citizens.
               </p>
               <div className="mt-8 space-y-5">
@@ -625,9 +625,9 @@ export default function LandingPage({ onNavigate }) {
         <div className="container-xl">
           <div className="flex flex-col md:flex-row items-center justify-between gap-6">
             <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-full bg-[var(--accent-tertiary)] flex items-center justify-center text-[var(--text-primary)] font-bold text-sm">CP</div>
+              <div className="w-8 h-8 rounded-full bg-[var(--accent-tertiary)] flex items-center justify-center text-[var(--text-primary)] font-bold text-sm">NM</div>
               <div>
-                <div className="text-white font-bold text-sm">CivicPulse</div>
+                <div className="text-white font-bold text-sm">NagarMithra</div>
                 <div className="text-xs text-[rgba(255,255,255,0.4)]">Digital Public Good</div>
               </div>
             </div>
@@ -638,7 +638,7 @@ export default function LandingPage({ onNavigate }) {
               </span>
               <span>Apache 2.0 / MIT</span>
               <span>UN SDG 9 & 11</span>
-              <span>© 2026 CivicPulse</span>
+              <span>© 2026 NagarMithra</span>
             </div>
           </div>
         </div>

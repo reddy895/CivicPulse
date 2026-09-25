@@ -30,7 +30,7 @@
     "stats_resolved": "Resolved",
     "stats_review": "Under Review",
     "stats_critical": "Critical",
-    "how_title": "How CivicPulse Works",
+    "how_title": "How NagarMithra Works",
     "how_subtitle": "A transparent process from citizen report to government action",
     "step_report": "Report",
     "step_evidence": "Evidence",
@@ -203,7 +203,7 @@
     "demo_gov": "Demo: Government",
     "switch_gov": "Switch to Government",
     "switch_citizen": "Switch to Citizen",
-    "welcome": "Welcome to CivicPulse",
+    "welcome": "Welcome to NagarMithra",
     "tagline": "Your voice. Your community. Your infrastructure."
   }
 }

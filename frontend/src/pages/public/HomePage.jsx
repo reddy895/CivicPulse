@@ -21,7 +21,7 @@ function useCountUp(target, duration = 2000, active = false) {
 
 /* ── Interactive Civic Network Visualization (Professional Vector Nodes) ── */
 const NODES = [
-  { id: 'center', label: 'CivicPulse', x: 210, y: 195, r: 38, color: '#6F4E37', stroke: '#D4A373', shortCode: 'CIVIC' },
+  { id: 'center', label: 'NagarMithra', x: 210, y: 195, r: 38, color: '#6F4E37', stroke: '#D4A373', shortCode: 'NAGAR' },
   { id: 'govt', label: 'GOVT', x: 210, y: 58, r: 22, color: '#2D7A50', stroke: '#5A8F6E', shortCode: 'GOV' },
   { id: 'roads', label: 'ROADS', x: 78, y: 105, r: 21, color: '#2C1810', stroke: '#D4A373', shortCode: 'ROAD' },
   { id: 'water', label: 'WATER', x: 342, y: 95, r: 21, color: '#1D3A5C', stroke: '#5A7D9A', shortCode: 'WTR' },
@@ -73,7 +73,7 @@ function CivicNetwork({ interactive = true }) {
       viewBox="0 0 420 390"
       className="w-full max-w-[440px] mx-auto select-none"
       onMouseMove={handleMouseMove}
-      aria-label="CivicPulse Multilingual AI Infrastructure Alignment Network"
+      aria-label="NagarMithra Multilingual AI Infrastructure Alignment Network"
     >
       <defs>
         <radialGradient id="netBg" cx="50%" cy="50%" r="50%">
@@ -357,7 +357,7 @@ export default function HomePage() {
         <div className="container-xl">
           <div className="text-center mb-16">
             <div className="text-[11px] font-bold text-[var(--accent-primary)] uppercase tracking-wider mb-1">Process</div>
-            <h2 id="how-heading" className="text-2xl sm:text-3xl font-bold text-[var(--text-primary)]">How CivicPulse Works</h2>
+            <h2 id="how-heading" className="text-2xl sm:text-3xl font-bold text-[var(--text-primary)]">How NagarMithra Works</h2>
             <p className="mt-2 text-[var(--text-secondary)] max-w-lg mx-auto text-sm">A transparent digital loop from grassroots submission to public verification.</p>
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4 lg:gap-3 relative">
@@ -486,7 +486,7 @@ export default function HomePage() {
             <div>
               <div className="text-[11px] font-bold text-[#D4A373] uppercase tracking-wider mb-2">Government Impact</div>
               <h2 id="impact-heading" className="text-2xl sm:text-3xl font-bold text-white">For Government Officers & Ministries</h2>
-              <p className="mt-4 text-white/70 leading-relaxed text-sm">Government officers use CivicPulse to review citizen evidence, assess AI-classified priorities, assign departments, and resolve issues with full public accountability.</p>
+              <p className="mt-4 text-white/70 leading-relaxed text-sm">Government officers use NagarMithra to review citizen evidence, assess AI-classified priorities, assign departments, and resolve issues with full public accountability.</p>
               
               <div className="mt-8 space-y-4">
                 {[

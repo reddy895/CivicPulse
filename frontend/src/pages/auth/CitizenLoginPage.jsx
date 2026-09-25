@@ -39,13 +39,13 @@ export default function CitizenLoginPage() {
       <div className="w-full max-w-md">
         {/* Back to public */}
         <Link to="/" className="flex items-center gap-2 text-sm text-[var(--text-tertiary)] hover:text-[var(--accent-primary)] mb-8 transition-colors">
-          ← Back to CivicPulse
+          ← Back to NagarMithra
         </Link>
 
         <div className="card-coffee p-8">
           {/* Header */}
           <div className="text-center mb-8">
-            <img src={brandLogo} alt="CivicPulse" className="h-12 w-auto mx-auto mb-4 object-contain rounded-lg" />
+            <img src={brandLogo} alt="NagarMithra" className="h-16 w-16 mx-auto mb-4 object-contain rounded-full shadow-sm" />
             <h1 className="text-xl font-extrabold text-[var(--text-primary)]">{t('auth.login')}</h1>
             <p className="text-sm text-[var(--text-secondary)] mt-1">Citizen Portal — Sign in to report infrastructure issues</p>
           </div>

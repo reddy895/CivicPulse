@@ -58,7 +58,7 @@ export default function ReportGatePage() {
         </div>
 
         <Link to="/" className="inline-block text-xs font-medium text-[var(--text-tertiary)] hover:text-[var(--accent-primary)] transition-colors">
-          ← Back to CivicPulse
+          ← Back to NagarMithra
         </Link>
       </div>
     </div>
