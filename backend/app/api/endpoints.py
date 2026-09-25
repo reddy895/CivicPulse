@@ -346,7 +346,7 @@ async def export_dpg_data(
         geojson_data = get_hotspots_geojson(country_code=country_code)
         return JSONResponse(
             content=geojson_data.model_dump(),
-            headers={"Content-Disposition": f"attachment; filename=nagarmithra_hotspots_{country_code or 'all'}.geojson"}
+            headers={"Content-Disposition": f"attachment; filename=civicpulse_hotspots_{country_code or 'all'}.geojson"}
         )
         
     elif format == "csv":
@@ -367,7 +367,7 @@ async def export_dpg_data(
         return StreamingResponse(
             io.BytesIO(output.getvalue().encode("utf-8")),
             media_type="text/csv",
-            headers={"Content-Disposition": f"attachment; filename=nagarmithra_dpg_data_{country_code or 'all'}.csv"}
+            headers={"Content-Disposition": f"attachment; filename=civicpulse_dpg_data_{country_code or 'all'}.csv"}
         )
         
     else: # json
@@ -378,9 +378,11 @@ async def export_dpg_data(
 async def get_dpg_standards():
     """Return Digital Public Goods Alliance (DPGA) standard compliance scorecard and metadata."""
     return {
-        "dpg_name": "NagarMithra DPG",
+        "dpg_name": "CivicPulse DPG",
         "standard_version": "DPGA-v1.4.0",
-        "open_license": "Apache 2.0 / MIT",
+        "open_license": "GNU AGPLv3 / Apache 2.0 (DPGA Standard 1 Compliant)",
+        "copyright": "Copyright (C) 2026 Praveen Reddy. All rights reserved.",
+        "author": "Praveen Reddy",
         "privacy_compliance": "Differential Privacy & PII-Anonymized Stream Aggregation",
         "interoperability": "OpenAPI 3.1, GeoJSON RFC 7946, W3C Schema.org DCAT-AP",
         "supported_brics_languages": [

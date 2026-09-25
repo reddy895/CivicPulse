@@ -40,31 +40,38 @@ export default function PublicLayout() {
 
   const currentLangObj = SUPPORTED_LANGUAGES.find(l => l.code === currentLang) || SUPPORTED_LANGUAGES[0];
 
+  const isHome = location.pathname === '/';
+  const isScrolled = scrolled || !isHome;
+
   return (
     <div className="min-h-screen flex flex-col bg-[var(--bg-primary)]">
       {/* ── PUBLIC NAVBAR ── */}
       <header
         className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-          scrolled
+          isScrolled
             ? 'bg-white/95 backdrop-blur-md border-b border-[var(--border-warm)] shadow-[var(--shadow-sm)]'
             : 'bg-transparent'
         }`}
       >
         <div className="container-xl flex items-center h-16 gap-6">
           {/* Logo */}
-          <Link to="/" className="flex items-center gap-2.5 shrink-0 group mr-2" aria-label="NagarMithra">
+          <Link to="/" className="flex items-center gap-2.5 shrink-0 group mr-2" aria-label="CivicPulse">
             <img 
               src={brandLogo} 
-              alt="NagarMithra - Citizen Data • Stronger Communities" 
-              className="h-9 sm:h-10 w-auto object-contain transition-transform duration-200 group-hover:scale-105 rounded-full" 
+              alt="CivicPulse" 
+              className="h-10 w-10 sm:h-11 sm:w-11 object-contain transition-transform duration-200 group-hover:scale-105 rounded-full" 
             />
-            <span className={`font-extrabold text-base tracking-tight transition-colors duration-300 ${
-              scrolled 
-                ? 'text-[#6F4E37] group-hover:text-[#4A3222]' 
-                : 'text-white group-hover:text-[#FDFBF7]'
-            }`}>
-              NagarMithra
-            </span>
+            <div className="flex flex-col text-left">
+              <span className="text-lg sm:text-xl font-black tracking-tight leading-tight flex items-center transition-colors duration-300">
+                <span className={isScrolled ? 'text-[#1C0F07]' : 'text-white'}>Civic</span>
+                <span className={isScrolled ? 'text-[var(--accent-primary)]' : 'text-white'}>Pulse</span>
+              </span>
+              <span className={`text-[9px] tracking-wider uppercase font-bold leading-none hidden sm:block transition-colors duration-300 ${
+                isScrolled ? 'text-[var(--text-secondary)]' : 'text-white/80'
+              }`}>
+                People • Issues • Better Cities
+              </span>
+            </div>
           </Link>
 
           {/* Desktop Nav Center */}
@@ -85,10 +92,10 @@ export default function PublicLayout() {
                     }
                   }
                 }}
-                className={`px-3.5 py-2 rounded-[var(--radius-md)] text-sm font-medium transition-all cursor-pointer ${
-                  scrolled
-                    ? 'text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-secondary)]'
-                    : 'text-white/80 hover:text-white hover:bg-white/10'
+                className={`px-3.5 py-2 rounded-[var(--radius-md)] text-sm font-semibold transition-all cursor-pointer ${
+                  isScrolled
+                    ? 'text-[#5C4A42] hover:text-[#1C0F07] hover:bg-[var(--bg-secondary)]'
+                    : 'text-white hover:text-white/80 hover:bg-white/10'
                 }`}
               >
                 {link.label}
@@ -102,10 +109,10 @@ export default function PublicLayout() {
             <div className="relative">
               <button
                 onClick={() => setLangOpen(v => !v)}
-                className={`flex items-center gap-1.5 px-3 py-2 rounded-[var(--radius-md)] text-sm font-medium transition-all cursor-pointer ${
-                  scrolled
-                    ? 'text-[var(--text-secondary)] hover:bg-[var(--bg-secondary)]'
-                    : 'text-white/80 hover:bg-white/10'
+                className={`flex items-center gap-1.5 px-3 py-2 rounded-[var(--radius-md)] text-sm font-semibold transition-all cursor-pointer ${
+                  isScrolled
+                    ? 'text-[#5C4A42] hover:bg-[var(--bg-secondary)]'
+                    : 'text-white hover:bg-white/10'
                 }`}
               >
                 <Globe2 className="w-4 h-4" />
@@ -132,9 +139,9 @@ export default function PublicLayout() {
             <Link
               to="/gov-demo/login"
               className={`hidden sm:flex items-center gap-1.5 px-3.5 py-2 rounded-[var(--radius-md)] text-xs font-bold border transition-all cursor-pointer ${
-                scrolled
-                  ? 'border-[var(--border-warm)] text-[var(--text-secondary)] hover:border-[var(--accent-tertiary)] hover:text-[var(--accent-primary)] bg-white'
-                  : 'border-white/30 text-white/90 hover:border-white/70 hover:bg-white/10'
+                isScrolled
+                  ? 'border-[var(--border-warm)] text-[var(--accent-primary)] hover:border-[var(--accent-primary)] hover:bg-[var(--bg-secondary)] bg-white'
+                  : 'border-white/40 text-white hover:border-white hover:bg-white/10'
               }`}
             >
               <Building2 className="w-3.5 h-3.5" />
@@ -144,7 +151,9 @@ export default function PublicLayout() {
             {/* Mobile toggle */}
             <button
               onClick={() => setMobileOpen(v => !v)}
-              className={`md:hidden w-9 h-9 flex items-center justify-center rounded-[var(--radius-md)] transition-all cursor-pointer ${scrolled ? 'text-[var(--text-secondary)] hover:bg-[var(--bg-secondary)]' : 'text-white/80 hover:bg-white/10'}`}
+              className={`md:hidden w-9 h-9 flex items-center justify-center rounded-[var(--radius-md)] transition-all cursor-pointer ${
+                isScrolled ? 'text-[#5C4A42] hover:bg-[var(--bg-secondary)]' : 'text-white hover:bg-white/10'
+              }`}
             >
               {mobileOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
             </button>

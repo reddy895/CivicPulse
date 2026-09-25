@@ -30,7 +30,7 @@
     "stats_resolved": "हल किए गए",
     "stats_review": "समीक्षाधीन",
     "stats_critical": "गंभीर",
-    "how_title": "NagarMithra कैसे काम करता है",
+    "how_title": "CivicPulse कैसे काम करता है",
     "how_subtitle": "नागरिक रिपोर्ट से सरकारी कार्रवाई तक एक पारदर्शी प्रक्रिया",
     "step_report": "रिपोर्ट",
     "step_evidence": "साक्ष्य",
@@ -192,7 +192,7 @@
     "government": "सरकारी अधिकारी",
     "demo_citizen": "डेमो: नागरिक",
     "demo_gov": "डेमो: सरकार",
-    "welcome": "NagarMithra में आपका स्वागत है",
+    "welcome": "CivicPulse में आपका स्वागत है",
     "tagline": "आपकी आवाज़। आपका समुदाय। आपका बुनियादी ढांचा।"
   }
 }

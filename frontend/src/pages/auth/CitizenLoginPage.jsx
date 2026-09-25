@@ -39,15 +39,20 @@ export default function CitizenLoginPage() {
       <div className="w-full max-w-md">
         {/* Back to public */}
         <Link to="/" className="flex items-center gap-2 text-sm text-[var(--text-tertiary)] hover:text-[var(--accent-primary)] mb-8 transition-colors">
-          ← Back to NagarMithra
+          ← Back to CivicPulse
         </Link>
 
         <div className="card-coffee p-8">
           {/* Header */}
-          <div className="text-center mb-8">
-            <img src={brandLogo} alt="NagarMithra" className="h-16 w-16 mx-auto mb-4 object-contain rounded-full shadow-sm" />
-            <h1 className="text-xl font-extrabold text-[var(--text-primary)]">{t('auth.login')}</h1>
-            <p className="text-sm text-[var(--text-secondary)] mt-1">Citizen Portal — Sign in to report infrastructure issues</p>
+          <div className="text-center mb-6">
+            <div className="flex flex-col items-center mb-3">
+              <img src={brandLogo} alt="CivicPulse" className="h-16 w-16 mx-auto mb-1.5 object-contain rounded-full shadow-xs" />
+              <span className="text-xl font-black text-[var(--text-primary)] tracking-tight">
+                Civic<span className="text-[var(--accent-primary)]">Pulse</span>
+              </span>
+            </div>
+            <h1 className="text-lg font-bold text-[var(--text-primary)]">{t('auth.login')}</h1>
+            <p className="text-xs text-[var(--text-secondary)] mt-0.5">Citizen Portal — Sign in to report infrastructure issues</p>
           </div>
 
           {/* Fast Evaluator Demo Banner */}

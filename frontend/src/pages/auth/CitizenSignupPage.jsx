@@ -35,14 +35,19 @@ export default function CitizenSignupPage() {
     <div className="min-h-screen bg-[var(--bg-primary)] flex items-center justify-center px-4 py-16">
       <div className="w-full max-w-md">
         <Link to="/" className="flex items-center gap-2 text-sm text-[var(--text-tertiary)] hover:text-[var(--accent-primary)] mb-8 transition-colors">
-          ← Back to NagarMithra
+          ← Back to CivicPulse
         </Link>
 
         <div className="card-coffee p-8">
-          <div className="text-center mb-8">
-            <img src={brandLogo} alt="NagarMithra" className="h-16 w-16 mx-auto mb-4 object-contain rounded-full shadow-sm" />
-            <h1 className="text-xl font-extrabold text-[var(--text-primary)]">{t('auth.register')}</h1>
-            <p className="text-sm text-[var(--text-secondary)] mt-1">Create your citizen account to submit reports</p>
+          <div className="text-center mb-6">
+            <div className="flex flex-col items-center mb-3">
+              <img src={brandLogo} alt="CivicPulse" className="h-16 w-16 mx-auto mb-1.5 object-contain rounded-full shadow-xs" />
+              <span className="text-xl font-black text-[var(--text-primary)] tracking-tight">
+                Civic<span className="text-[var(--accent-primary)]">Pulse</span>
+              </span>
+            </div>
+            <h1 className="text-lg font-bold text-[var(--text-primary)]">{t('auth.register')}</h1>
+            <p className="text-xs text-[var(--text-secondary)] mt-0.5">Create your citizen account to submit reports</p>
           </div>
 
           {error && (

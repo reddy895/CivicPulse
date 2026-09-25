@@ -1,0 +1,52 @@
+CivicPulse DPG - Multilingual AI Citizen Infrastructure Alignment Platform
+Copyright (C) 2026 Praveen Reddy. All rights reserved.
+
+===============================================================================
+LEGAL NOTICE & PROPRIETARY APPROPRIATION PROHIBITION
+===============================================================================
+
+1. AUTHOR & COPYRIGHT OWNERSHIP
+   CivicPulse, its architecture, algorithms, user interfaces, branding, and
+   accompanying documentation were conceived, designed, and authored by
+   Praveen Reddy.
+   Copyright (C) 2026 Praveen Reddy. All rights reserved.
+
+2. PROHIBITION OF PROPRIETARY COPYRIGHT & EXCLUSIVE CLAIMS
+   No person, entity, company, or institution may:
+   - Claim exclusive proprietary copyright over this project, its code, or any
+     substantial portion thereof.
+   - Re-license, privatize, or enclose this project under closed-source,
+     commercial proprietary, or restrictive distribution terms.
+   - Restrict other individuals, sovereign governments, or public bodies from
+     exercising their rights under the GNU Affero General Public License v3.0
+     or the Apache License 2.0.
+
+3. RECIPROCAL OPEN-SOURCE OBLIGATION (COPYLEFT PROTECTION)
+   Under the GNU Affero General Public License v3 (AGPL-3.0), anyone who modifies,
+   embeds, distributes, or operates this software over a computer network (SaaS)
+   is legally obligated to make the complete corresponding source code freely
+   available to all users under the identical AGPL-3.0 terms.
+
+4. TRADEMARK & BRAND IDENTITY
+   The names "CivicPulse", "CivicPulse DPG", the emblem logo, and associated visual
+   assets are the intellectual identity of Praveen Reddy. This license does NOT
+   grant any permission to use these trademarks, service marks, or logos for
+   unauthorized commercial promotion or endorsement without express written consent.
+
+5. PATENT RETALIATION DEFENSE
+   Any contributor or third party asserting patent infringement against CivicPulse
+   or its users automatically forfeits all rights and licenses granted hereunder.
+
+===============================================================================
+DIGITAL PUBLIC GOODS ALLIANCE (DPGA) STANDARD COMPLIANCE
+===============================================================================
+CivicPulse complies with the 9 DPGA Standard Indicators as a Digital Public Good:
+- DPGA Indicator 1: Open Source Software License (AGPL-3.0 / Apache 2.0)
+- DPGA Indicator 2: Open Standards (GeoJSON RFC 7946, OpenAPI 3.1, W3C Schema.org)
+- DPGA Indicator 3: Open Data Extraction & Machine Readability
+- DPGA Indicator 4: Coordinate Differential Privacy & PII Protection
+- DPGA Indicator 5: Privacy Regulation Adherence
+- DPGA Indicator 6: Direct Alignment with UN Sustainable Development Goals (SDGs 3, 4, 6, 7, 9, 11, 16)
+- DPGA Indicator 7: Multilingual Accessibility across Native Dialects
+- DPGA Indicator 8: Do No Harm & Explainable Decision Intelligence
+- DPGA Indicator 9: Sovereign e-Governance Interoperability

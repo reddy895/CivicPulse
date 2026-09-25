@@ -17,7 +17,7 @@ export default function HowItWorksPage() {
       <div className="container-lg py-20">
         <div className="text-center mb-16">
           <div className="text-label mb-3">Process</div>
-          <h1 className="text-headline text-[var(--text-primary)]">How NagarMithra Works</h1>
+          <h1 className="text-headline text-[var(--text-primary)]">How CivicPulse Works</h1>
           <p className="mt-4 text-[var(--text-secondary)] max-w-xl mx-auto leading-relaxed">A transparent, evidence-based process from citizen observation to government action.</p>
         </div>
         <div className="space-y-6">

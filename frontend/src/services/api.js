@@ -335,7 +335,7 @@ export async function queryAICopilot(payload) {
   } catch (err) {
     return {
       query: payload.query,
-      answer: "NagarMithra Decision AI processed your policy inquiry.",
+      answer: "CivicPulse Decision AI processed your policy inquiry.",
       action_items: ["Review priority infrastructure hotspots on the GIS map."],
       citations: [],
       generated_at: new Date().toISOString()
@@ -350,7 +350,7 @@ export async function getDPGStandards() {
     return await res.json();
   } catch (err) {
     return {
-      dpg_name: "NagarMithra DPG",
+      dpg_name: "CivicPulse DPG",
       standard_version: "DPGA-v1.4.0",
       compliance_score: "9/9 DPGA Indicators Met"
     };

@@ -35,17 +35,22 @@ export default function GovLayout() {
           
           {/* Brand Logo & Authority Label */}
           <div className="flex items-center gap-3 shrink-0">
-            <Link to="/gov-demo" className="flex items-center gap-2 shrink-0" aria-label="NagarMithra Government">
+            <Link to="/gov-demo" className="flex items-center gap-2.5 shrink-0" aria-label="CivicPulse Government">
               <img 
                 src={brandLogo} 
-                alt="NagarMithra" 
-                className="h-9 sm:h-10 w-auto object-contain transition-transform duration-150 hover:scale-105 rounded-md" 
+                alt="CivicPulse" 
+                className="h-9 sm:h-10 w-9 sm:w-10 object-contain transition-transform duration-150 hover:scale-105 rounded-full" 
               />
-              <span className="font-extrabold text-base tracking-tight text-white hidden sm:inline-block">
-                NagarMithra
-              </span>
+              <div className="flex flex-col text-left">
+                <span className="text-base sm:text-lg font-black tracking-tight text-white leading-tight flex items-center">
+                  <span>Civic</span><span className="text-[#D4A373]">Pulse</span>
+                </span>
+                <span className="text-[9px] tracking-wider uppercase text-white/50 font-bold leading-none hidden sm:block">
+                  Gov Command Console
+                </span>
+              </div>
             </Link>
-            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold tracking-wider uppercase bg-[#D4A373]/15 text-[#D4A373] border border-[#D4A373]/30 whitespace-nowrap">
+            <span className="hidden sm:inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold tracking-wider uppercase bg-[#D4A373]/15 text-[#D4A373] border border-[#D4A373]/30 whitespace-nowrap">
               Gov Portal
             </span>
           </div>

@@ -8,5 +8,5 @@
   "ai": {"assessment":"AI అంచనా","category":"వర్గం","severity":"తీవ్రత","confidence":"నమ్మకం","requires_verification":"ధృవీకరణ అవసరం","analyzing":"విశ్లేషిస్తోంది..."},
   "gov": {"dashboard":"ప్రభుత్వ డాష్‌బోర్డ్","total_complaints":"మొత్తం ఫిర్యాదులు","critical":"క్రిటికల్","pending":"పెండింగ్","resolved":"పరిష్కరించబడింది"},
   "common": {"loading":"లోడ్ అవుతోంది...","error":"ఏదో తప్పు జరిగింది","retry":"మళ్ళీ ప్రయత్నించు","cancel":"రద్దు చేయి","save":"సేవ్ చేయి","close":"మూసివేయి","search":"వెతకండి","submit_error":"మీ నివేదిక సమర్పించడం సాధ్యం కాలేదు."},
-  "auth": {"login":"సైన్ ఇన్","register":"ఖాతా సృష్టించు","email":"ఇమెయిల్ చిరునామా","password":"పాస్‌వర్డ్","name":"పూర్తి పేరు","citizen":"పౌరుడు","government":"ప్రభుత్వ అధికారి","welcome":"NagarMithra కి స్వాగతం"}
+  "auth": {"login":"సైన్ ఇన్","register":"ఖాతా సృష్టించు","email":"ఇమెయిల్ చిరునామా","password":"పాస్‌వర్డ్","name":"పూర్తి పేరు","citizen":"పౌరుడు","government":"ప్రభుత్వ అధికారి","welcome":"CivicPulse కి స్వాగతం"}
 }

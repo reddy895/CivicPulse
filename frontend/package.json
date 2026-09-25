@@ -1,7 +1,9 @@
 {
   "name": "frontend",
   "private": true,
-  "version": "0.0.0",
+  "version": "1.0.0",
+  "license": "AGPL-3.0-or-later OR Apache-2.0",
+  "author": "Praveen Reddy",
   "type": "module",
   "scripts": {
     "dev": "vite",

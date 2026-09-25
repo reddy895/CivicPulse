@@ -37,7 +37,7 @@ def generate_ai_copilot_response(payload: AICopilotQuery) -> AICopilotResponse:
             f"Subject: High-Priority Infrastructure & Citizen Demand Realignment Report ({c_name})\n"
             f"Date: {datetime.utcnow().strftime('%B %d, %Y')} | Status: Action Required\n\n"
             f"1. STRATEGIC OVERVIEW:\n"
-            f"NagarMithra AI has ingested and fused {len(db.get_all_requests(c_code))} citizen feedback streams across voice, SMS, and messaging apps "
+            f"CivicPulse AI has ingested and fused {len(db.get_all_requests(c_code))} citizen feedback streams across voice, SMS, and messaging apps "
             f"with national demographic vulnerability records. {len(hotspots)} critical demand hotspots have been validated.\n\n"
             f"2. TOP PRIORITY INTERVENTION:\n"
             f"• Priority #1: {title_str}\n"

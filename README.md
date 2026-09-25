@@ -1,7 +1,8 @@
 # CivicPulse DPG: Multilingual AI Citizen Infrastructure Alignment Platform
 
 [![Digital Public Good](https://img.shields.io/badge/DPGA-Standard%20v1.4.0%20Compliant-10b981.svg)](https://digitalpublicgoods.net)
-[![License](https://img.shields.io/badge/License-Apache%202.0%20%2F%20MIT-blue.svg)](LICENSE)
+[![License: AGPL v3](https://img.shields.io/badge/License-GNU%20AGPLv3%20%7C%20Apache%202.0-blue.svg)](LICENSE)
+[![Copyright](https://img.shields.io/badge/Copyright-2026%20Praveen%20Reddy-amber.svg)](COPYRIGHT)
 [![BRICS](https://img.shields.io/badge/Nations-India%20%7C%20Brazil%20%7C%20South%20Africa%20%7C%20China%20%7C%20Russia-cyan.svg)](#)
 
 CivicPulse is a scalable, open-source, multilingual AI platform designed as a **Digital Public Good (DPG)** to bridge the critical gap between grassroots citizen infrastructure demands and national capital investment plans across **BRICS nations** (India, Brazil, South Africa, China, Russia).
@@ -165,7 +166,9 @@ npm run dev
 ## 📜 Digital Public Good (DPGA) Compliance
 
 CivicPulse meets all **9 DPGA Standard Indicators**:
-1. **Open License**: Apache 2.0 / MIT.
+1. **Open License**: Dual-licensed under the **GNU Affero General Public License v3.0 (AGPL-3.0)** and **Apache License 2.0**.
+   - Copyleft guarantee: Guarantees that this software, any modifications, and network services based on it must remain permanently open-source.
+   - Proprietary prohibition: No entity or third party may claim exclusive proprietary copyright over this project or close its source.
 2. **Open Standards**: GeoJSON (RFC 7946), OpenAPI 3.1, W3C Schema.org.
 3. **Open Data Extraction**: Machine-readable GeoJSON and CSV downloads.
 4. **Differential Privacy**: Coordinate jittering & strict PII scrubbing.
@@ -175,5 +178,14 @@ CivicPulse meets all **9 DPGA Standard Indicators**:
 8. **Do No Harm & Ethical AI**: Transparent MCDA weightings.
 9. **Interoperability**: Standard REST APIs for sovereign e-Governance platforms.
 
+---
 
-Built by Praveen Reddy
+## ⚖️ Copyright & License
+
+**Copyright (C) 2026 Praveen Reddy. All rights reserved.**
+
+This project is licensed under the [GNU Affero General Public License v3.0 (AGPL-3.0)](LICENSE) with the [Apache License 2.0](LICENSE-APACHE) option.
+
+- **Anti-Appropriation Clause**: See [`NOTICE`](NOTICE) and [`COPYRIGHT`](COPYRIGHT) for legal details.
+- Commercial or proprietary closure of this codebase is strictly forbidden under the reciprocal terms of the GNU AGPLv3.
+

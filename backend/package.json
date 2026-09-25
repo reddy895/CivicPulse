@@ -3,6 +3,8 @@
   "version": "1.0.0",
   "private": true,
   "description": "CivicPulse FastAPI Backend Service",
+  "license": "AGPL-3.0-or-later OR Apache-2.0",
+  "author": "Praveen Reddy",
   "scripts": {
     "dev": "bash -c 'if [ -f .venv/bin/python ]; then exec .venv/bin/python -m uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload; elif [ -f .venv/bin/uvicorn ]; then exec .venv/bin/uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload; elif command -v python3 >/dev/null 2>&1; then exec python3 run.py; else exec python run.py; fi' || python3 run.py || python run.py",
     "start": "bash -c 'if [ -f .venv/bin/python ]; then exec .venv/bin/python -m uvicorn app.main:app --host 0.0.0.0 --port 8000; elif [ -f .venv/bin/uvicorn ]; then exec .venv/bin/uvicorn app.main:app --host 0.0.0.0 --port 8000; elif command -v python3 >/dev/null 2>&1; then exec python3 -m uvicorn app.main:app --host 0.0.0.0 --port 8000; else exec python -m uvicorn app.main:app --host 0.0.0.0 --port 8000; fi' || python3 -m uvicorn app.main:app --host 0.0.0.0 --port 8000 || python -m uvicorn app.main:app --host 0.0.0.0 --port 8000",

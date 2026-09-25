@@ -77,19 +77,19 @@ export default function Navbar({
           <button 
             onClick={() => handleNavClick('map')}
             className="flex items-center gap-2.5 shrink-0 group cursor-pointer"
-            aria-label="NagarMithra Home"
+            aria-label="CivicPulse Home"
           >
             <img 
               src={brandLogo} 
-              alt="NagarMithra - Citizen Data • Stronger Communities" 
-              className="h-9 sm:h-10 w-auto object-contain transition-transform duration-200 group-hover:scale-105 rounded-md" 
+              alt="CivicPulse" 
+              className="h-10 w-10 sm:h-11 sm:w-11 object-contain transition-transform duration-200 group-hover:scale-105 rounded-full" 
             />
             <div className="flex flex-col text-left">
-              <span className="font-extrabold text-base sm:text-lg tracking-tight text-[var(--accent-primary)] group-hover:text-[var(--accent-dark)] transition leading-tight">
-                NagarMithra
+              <span className="text-lg sm:text-xl font-black tracking-tight text-[var(--text-primary)] leading-tight flex items-center">
+                <span>Civic</span><span className="text-[var(--accent-primary)]">Pulse</span>
               </span>
-              <span className="hidden sm:inline-block text-[9px] tracking-wider text-[var(--text-tertiary)] uppercase font-semibold">
-                Citizen Infrastructure Alignment
+              <span className="text-[9px] tracking-wider uppercase text-[var(--text-tertiary)] font-bold leading-none hidden sm:block">
+                People • Issues • Better Cities
               </span>
             </div>
           </button>
