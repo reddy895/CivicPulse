@@ -361,6 +361,19 @@ a {
   -webkit-appearance: none;
 }
 
+/* Ensure inputs with left or right icons have ample clearance */
+.form-input.pl-10,
+.form-input.pl-11,
+.form-input-with-icon-left {
+  padding-left: 42px !important;
+}
+
+.form-input.pr-10,
+.form-input.pr-11,
+.form-input-with-icon-right {
+  padding-right: 42px !important;
+}
+
 .form-input::placeholder {
   color: var(--text-placeholder);
 }

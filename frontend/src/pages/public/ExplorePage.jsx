@@ -16,8 +16,8 @@ export default function ExplorePage() {
             <FileText className="w-4 h-4" /> Report Issue
           </Link>
         </div>
-        <div className="card-coffee overflow-hidden" style={{ height: 'calc(100vh - 200px)', minHeight: '500px' }}>
-          <GISMap selectedCountry="IND" onSelectProject={() => {}} onOpenCopilot={() => {}} />
+        <div className="w-full">
+          <GISMap selectedCountry="ALL" onSelectProject={() => {}} onOpenCopilot={() => {}} />
         </div>
       </div>
     </div>

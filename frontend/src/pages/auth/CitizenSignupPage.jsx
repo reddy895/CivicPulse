@@ -62,16 +62,34 @@ export default function CitizenSignupPage() {
             <div>
               <label className="form-label">{t('auth.email')} <span className="text-[var(--status-danger)]">*</span></label>
               <div className="relative">
-                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-tertiary)]" />
-                <input id="signup-email" type="email" value={form.email} onChange={set('email')} placeholder="you@example.com" className="form-input pl-10" required />
+                <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-tertiary)] pointer-events-none" />
+                <input 
+                  id="signup-email" 
+                  type="email" 
+                  value={form.email} 
+                  onChange={set('email')} 
+                  placeholder="you@example.com" 
+                  className="form-input form-input-with-icon-left pl-11" 
+                  style={{ paddingLeft: '44px' }}
+                  required 
+                />
               </div>
             </div>
             <div>
               <label className="form-label">{t('auth.password')} <span className="text-[var(--status-danger)]">*</span></label>
               <div className="relative">
-                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-tertiary)]" />
-                <input id="signup-password" type={showPw ? 'text' : 'password'} value={form.password} onChange={set('password')} placeholder="Min. 6 characters" className="form-input pl-10 pr-10" required />
-                <button type="button" onClick={() => setShowPw(v => !v)} className="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--text-tertiary)] cursor-pointer">
+                <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-tertiary)] pointer-events-none" />
+                <input 
+                  id="signup-password" 
+                  type={showPw ? 'text' : 'password'} 
+                  value={form.password} 
+                  onChange={set('password')} 
+                  placeholder="Min. 6 characters" 
+                  className="form-input form-input-with-icon-left pl-11 pr-11" 
+                  style={{ paddingLeft: '44px', paddingRight: '44px' }}
+                  required 
+                />
+                <button type="button" onClick={() => setShowPw(v => !v)} className="absolute right-3.5 top-1/2 -translate-y-1/2 text-[var(--text-tertiary)] cursor-pointer hover:text-[var(--text-primary)]">
                   {showPw ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                 </button>
               </div>

@@ -51,11 +51,13 @@ export default function GovMapPage() {
               onChange={(e) => setSelectedCountry(e.target.value)}
               className="bg-transparent text-[var(--text-primary)] font-semibold focus:outline-none cursor-pointer"
             >
-              <option value="ALL">All Nations</option>
+              <option value="ALL">All Nations (World Map)</option>
               <option value="IND">India (IND)</option>
+              <option value="USA">United States (USA)</option>
               <option value="BRA">Brazil (BRA)</option>
               <option value="ZAF">South Africa (ZAF)</option>
-              <option value="USA">United States (USA)</option>
+              <option value="CHN">China (CHN)</option>
+              <option value="RUS">Russia (RUS)</option>
             </select>
           </div>
 
@@ -73,6 +75,7 @@ export default function GovMapPage() {
       <div className="w-full">
         <GISMap
           selectedCountry={selectedCountry}
+          onCountryChange={setSelectedCountry}
           onSelectProject={handleSelectProject}
           onOpenCopilot={handleOpenCopilot}
         />
