@@ -33,6 +33,7 @@ class SubmissionChannel(str, Enum):
     WHATSAPP = "whatsapp"
     TELEGRAM = "telegram"
     SMS = "sms"
+    WEB = "web"
 
 class UserRole(str, Enum):
     CITIZEN = "citizen"
@@ -87,6 +88,8 @@ class CitizenRequestCreate(BaseModel):
     submitter_id: Optional[str] = Field(None, description="User ID of authenticated citizen")
     submitter_email: Optional[str] = Field(None, description="Email of authenticated citizen")
     contact_hash: Optional[str] = Field(None, description="Anonymized contact hash for status updates")
+    category: Optional[str] = Field(None, description="Optional pre-selected category")
+    image_url: Optional[str] = Field(None, description="Optional primary photo or evidence image URL")
 
 class EvidenceItem(BaseModel):
     id: str
@@ -126,7 +129,8 @@ class CitizenRequestResponse(BaseModel):
     created_at: str
     extracted_entities: Dict[str, Any]
     evidence_count: Optional[int] = 0
-    evidence: Optional[List["EvidenceItem"]] = []
+    evidence: Optional[List[Dict[str, Any]]] = []
+    image_url: Optional[str] = None
 
 class LiveGrievanceEvent(BaseModel):
     event_type: str = "NEW_COMPLAINT"

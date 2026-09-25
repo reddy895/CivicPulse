@@ -84,6 +84,12 @@ async def submit_citizen_request(payload: CitizenRequestCreate):
     """Submit a citizen infrastructure request via Text, WhatsApp, Telegram, or SMS."""
     return db.add_request(payload)
 
+@router.post("/citizen/requests/clear")
+async def clear_citizen_requests():
+    """Clear all citizen requests and evidence (resets database to 0 complaints)."""
+    db.clear_all_requests()
+    return {"message": "All complaints and evidence successfully cleared.", "total_remaining": 0}
+
 @router.post("/citizen/voice", response_model=VoiceSubmissionResponse)
 async def submit_voice_request(
     file: Optional[UploadFile] = File(None),
@@ -213,6 +219,14 @@ async def upload_complaint_evidence(
         content_type=content_type,
         file_bytes=file_bytes,
     )
+    
+    # Immediately update in db.requests if present
+    complaint = db.get_request_by_id(complaint_id)
+    if complaint:
+        ev_list = get_evidence_for_complaint(complaint_id)
+        complaint.evidence = ev_list
+        complaint.evidence_count = len(ev_list)
+        complaint.image_url = record.get("storage_url") or record.get("url")
     
     return record
 

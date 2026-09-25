@@ -46,7 +46,17 @@ export default function ComplaintDetailPage() {
     if (found) {
       try {
         const r = await fetch(`${API_BASE}/complaints/${id}/evidence`);
-        if (r.ok) setEvidence(await r.json());
+        if (r.ok) {
+          const d = await r.json();
+          const items = Array.isArray(d) ? d : (d.evidence || []);
+          if (items.length > 0) {
+            setEvidence(items);
+          } else if (found.evidence && found.evidence.length > 0) {
+            setEvidence(found.evidence);
+          } else if (found.image_url) {
+            setEvidence([{ id: 'primary', storage_url: found.image_url, url: found.image_url }]);
+          }
+        }
       } catch {}
     }
     setLoading(false);

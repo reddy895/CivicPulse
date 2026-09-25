@@ -717,132 +717,12 @@ class DataStore:
         self._initialize_requests()
         
     def _initialize_requests(self):
-        """Populate initial rich synthetic citizen requests by pairing seeds with regional variations."""
-        base_time = datetime.utcnow()
-        
-        for idx, seed in enumerate(RAW_SEED_COMPLAINTS):
-            reg = next((r for r in self.regions if r["id"] == seed["region_id"]), self.regions[0])
-            
-            # NLP Processing
-            lang_code, lang_name = detect_language(seed["text"])
-            translated_text = translate_to_english(seed["text"], lang_code)
-            category = classify_infrastructure_category(seed["text"], translated_text)
-            urgency, urgency_score = evaluate_urgency(seed["text"], translated_text)
-            entities = extract_entities(seed["text"], CountryCode(reg["country_code"]))
-            
-            # Slightly jitter coordinates within ~3km radius of district center
-            lat_jitter = reg["center_lat"] + random.uniform(-0.03, 0.03)
-            lng_jitter = reg["center_lng"] + random.uniform(-0.03, 0.03)
-            
-            created_at = (base_time - timedelta(days=random.randint(0, 30), hours=random.randint(1, 23))).isoformat() + "Z"
-            
-            req_item = CitizenRequestResponse(
-                id=f"CR-{reg['country_code']}-{1000 + idx}",
-                original_text=seed["text"],
-                translated_text=translated_text,
-                language=lang_code,
-                language_name=lang_name,
-                channel=seed["channel"],
-                country_code=CountryCode(reg["country_code"]),
-                country_name=reg["country_name"],
-                category=category,
-                urgency=urgency,
-                urgency_score=urgency_score,
-                sentiment_score=round(-1.0 * urgency_score, 2),
-                location_name=reg["district"],
-                state_province=reg["state_province"],
-                latitude=round(lat_jitter, 5),
-                longitude=round(lng_jitter, 5),
-                upvotes=seed["upvotes"],
-                status="Verified & Hotspot Clustered",
-                created_at=created_at,
-                extracted_entities=entities
-            )
-            self.requests.append(req_item)
-
-        # Ingest Real US Disability Compensation Complaints & Problems from CSV
-        disability_records = load_disability_records()
-        for d_idx, rec in enumerate(disability_records[:40]):
-            for c_idx, comp in enumerate(rec["complaints"]):
-                cat_enum = InfrastructureCategory.HEALTHCARE
-                for c in InfrastructureCategory:
-                    if c.value == comp["category"]:
-                        cat_enum = c
-                        break
-                
-                urg_enum = UrgencyLevel.CRITICAL if comp["urgency"] == "Critical" else (UrgencyLevel.HIGH if comp["urgency"] == "High" else UrgencyLevel.MEDIUM)
-                urg_score = 0.92 if urg_enum == UrgencyLevel.CRITICAL else (0.75 if urg_enum == UrgencyLevel.HIGH else 0.5)
-
-                dis_req = CitizenRequestResponse(
-                    id=f"CR-USA-{1000 + d_idx * 10 + c_idx}",
-                    original_text=comp["detail"],
-                    translated_text=comp["detail"],
-                    language="en",
-                    language_name="English (US)",
-                    channel=SubmissionChannel.TEXT,
-                    country_code=CountryCode.USA,
-                    country_name="United States",
-                    category=cat_enum,
-                    urgency=urg_enum,
-                    urgency_score=urg_score,
-                    sentiment_score=round(-1.0 * urg_score, 2),
-                    location_name=f"{rec['county_name']} County",
-                    state_province=rec["state"],
-                    latitude=rec["latitude"],
-                    longitude=rec["longitude"],
-                    upvotes=random.randint(45, 380),
-                    status="Verified Disability Deficit Signal",
-                    created_at=(base_time - timedelta(days=random.randint(1, 15), hours=random.randint(1, 20))).isoformat() + "Z",
-                    extracted_entities={
-                        "fips_code": rec["fips_code"],
-                        "total_recipients": rec["total_recipients"],
-                        "rating_100": rec["rating_100"],
-                        "problem_title": comp["problem_title"]
-                    }
-                )
-                self.requests.append(dis_req)
-            
-        # Synthetically scale additional requests to simulate large-scale aggregated streams
-        for i in range(120):
-            reg = random.choice(self.regions)
-            cat = random.choice(list(InfrastructureCategory))
-            urgency = random.choice([UrgencyLevel.HIGH, UrgencyLevel.CRITICAL, UrgencyLevel.MEDIUM, UrgencyLevel.LOW])
-            urgency_score = 0.85 if urgency == UrgencyLevel.CRITICAL else (0.65 if urgency == UrgencyLevel.HIGH else 0.4)
-            channel = random.choice(list(SubmissionChannel))
-            
-            lat_jitter = reg["center_lat"] + random.uniform(-0.05, 0.05)
-            lng_jitter = reg["center_lng"] + random.uniform(-0.05, 0.05)
-            
-            created_at = (base_time - timedelta(days=random.randint(0, 45), hours=random.randint(0, 23))).isoformat() + "Z"
-            
-            synthetic_text = f"Citizen report regarding severe {cat.value.lower()} deficit in {reg['district']}, {reg['state_province']}."
-            
-            req_item = CitizenRequestResponse(
-                id=f"CR-{reg['country_code']}-{2000 + i}",
-                original_text=synthetic_text,
-                translated_text=synthetic_text,
-                language="en",
-                language_name="English",
-                channel=channel,
-                country_code=CountryCode(reg["country_code"]),
-                country_name=reg["country_name"],
-                category=cat,
-                urgency=urgency,
-                urgency_score=urgency_score,
-                sentiment_score=round(-1.0 * urgency_score, 2),
-                location_name=reg["district"],
-                state_province=reg["state_province"],
-                latitude=round(lat_jitter, 5),
-                longitude=round(lng_jitter, 5),
-                upvotes=random.randint(15, 180),
-                status="Aggregated via DPI Stream",
-                created_at=created_at,
-                extracted_entities={"affected_count_estimate": random.randint(100, 2500)}
-            )
-            self.requests.append(req_item)
+        """Zero dummy complaints: start empty so only real citizen issues appear."""
+        self.requests = []
             
     def get_all_requests(self, country_code: Optional[str] = None, category: Optional[str] = None, urgency: Optional[str] = None, submitter_id: Optional[str] = None) -> List[CitizenRequestResponse]:
         """Filter requests by nation, sector, urgency tier, or submitter."""
+        from .evidence_storage import get_evidence_for_complaint
         results = self.requests
         if country_code and country_code != "ALL":
             results = [r for r in results if r.country_code.value == country_code]
@@ -852,20 +732,51 @@ class DataStore:
             results = [r for r in results if r.urgency.value == urgency]
         if submitter_id:
             results = [r for r in results if r.submitter_id == submitter_id]
+
+        for r in results:
+            ev_list = get_evidence_for_complaint(r.id)
+            if ev_list:
+                r.evidence = ev_list
+                r.evidence_count = len(ev_list)
+                if not r.image_url and ev_list:
+                    r.image_url = ev_list[0].get("storage_url") or ev_list[0].get("url")
+
         return sorted(results, key=lambda x: (x.urgency_score, x.upvotes), reverse=True)
 
     def get_request_by_id(self, request_id: str) -> Optional[CitizenRequestResponse]:
         """Find a single citizen request by ID."""
+        from .evidence_storage import get_evidence_for_complaint
         for r in self.requests:
             if r.id == request_id:
+                ev_list = get_evidence_for_complaint(r.id)
+                if ev_list:
+                    r.evidence = ev_list
+                    r.evidence_count = len(ev_list)
+                    if not r.image_url and ev_list:
+                        r.image_url = ev_list[0].get("storage_url") or ev_list[0].get("url")
                 return r
         return None
+
+    def clear_all_requests(self):
+        """Clear all citizen complaints and related evidence."""
+        self.requests = []
+        self.live_events = []
+        try:
+            from .evidence_storage import _evidence_store
+            _evidence_store.clear()
+        except Exception:
+            pass
         
     def add_request(self, payload: CitizenRequestCreate) -> CitizenRequestResponse:
         """Process, classify, and persist a new citizen request, broadcasting to live stream."""
         lang_code, lang_name = detect_language(payload.text)
         translated = translate_to_english(payload.text, lang_code)
         category = classify_infrastructure_category(payload.text, translated)
+        if payload.category:
+            for cat_enum in InfrastructureCategory:
+                if cat_enum.value.lower() == payload.category.lower() or cat_enum.name.lower() == payload.category.lower():
+                    category = cat_enum
+                    break
         urgency, urgency_score = evaluate_urgency(payload.text, translated)
         entities = extract_entities(payload.text, payload.country_code)
         
@@ -952,7 +863,10 @@ class DataStore:
             submitter_id=payload.submitter_id,
             submitter_name=payload.citizen_name or "Verified Citizen",
             created_at=datetime.utcnow().isoformat() + "Z",
-            extracted_entities=entities
+            extracted_entities=entities,
+            evidence_count=0,
+            evidence=[],
+            image_url=payload.image_url
         )
         
         self.requests.insert(0, new_req)
@@ -962,7 +876,7 @@ class DataStore:
             "event_type": "NEW_COMPLAINT",
             "timestamp": new_req.created_at,
             "request": new_req.model_dump(),
-            "message": f"🚨 New {new_req.category.value} Grievance detected at {new_req.location_name} ({new_req.country_name})"
+            "message": f"New {new_req.category.value} Grievance detected at {new_req.location_name} ({new_req.country_name})"
         }
         self.live_events.insert(0, event)
         if len(self.live_events) > 100:
@@ -1006,7 +920,7 @@ class DataStore:
                     "event_type": "STATUS_UPDATE",
                     "timestamp": datetime.utcnow().isoformat() + "Z",
                     "request": r.model_dump(),
-                    "message": f"🏛️ Status updated to '{status}' for grievance {r.id} ({r.location_name})"
+                    "message": f"Status updated to '{status}' for grievance {r.id} ({r.location_name})"
                 }
                 self.live_events.insert(0, update_event)
                 return r

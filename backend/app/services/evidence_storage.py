@@ -103,14 +103,17 @@ def store_evidence(
     
     now = datetime.utcnow().isoformat()
     
+    storage_url = f"/api/evidence/{complaint_id}/{stored_name}"
     evidence_record = {
         "id": evidence_id,
+        "file_id": evidence_id,
         "complaint_id": complaint_id,
         "filename": stored_name,
         "original_filename": safe_name,
         "file_type": content_type,
         "file_size_bytes": len(file_bytes),
-        "storage_url": f"/api/evidence/{complaint_id}/{stored_name}",
+        "url": storage_url,
+        "storage_url": storage_url,
         "upload_timestamp": now,
         "width": None,
         "height": None,
@@ -120,6 +123,17 @@ def store_evidence(
     if complaint_id not in _evidence_store:
         _evidence_store[complaint_id] = []
     _evidence_store[complaint_id].append(evidence_record)
+    
+    # Link evidence directly into the complaint record
+    try:
+        from .data_store import db
+        complaint = db.get_request_by_id(complaint_id)
+        if complaint:
+            complaint.evidence = _evidence_store[complaint_id]
+            complaint.evidence_count = len(_evidence_store[complaint_id])
+            complaint.image_url = storage_url
+    except Exception:
+        pass
     
     return evidence_record
 

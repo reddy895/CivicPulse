@@ -11,7 +11,30 @@ def calculate_hotspots(country_code: Optional[str] = None) -> List[HotspotCluste
     """
     requests = db.get_all_requests(country_code=country_code)
     if not requests:
-        return []
+        # Provide baseline regional clusters from demographic deficits
+        from ..models.schemas import CountryCode, InfrastructureCategory
+        clusters = []
+        target_regions = [r for r in db.regions if country_code is None or country_code == "ALL" or r["country_code"] == country_code]
+        for reg in target_regions:
+            top_cat = max(reg["infrastructure_deficits"].items(), key=lambda x: x[1])[0]
+            clusters.append(HotspotCluster(
+                id=f"HOTSPOT-{reg['country_code']}_{reg['state_province']}",
+                cluster_name=f"{reg['district']} ({top_cat})",
+                country_code=CountryCode(reg["country_code"]),
+                state_province=reg["state_province"],
+                latitude=reg["center_lat"],
+                longitude=reg["center_lng"],
+                radius_km=5.0,
+                request_count=0,
+                top_category=InfrastructureCategory(top_cat),
+                avg_urgency_score=0.75,
+                vulnerability_index=reg["vulnerability_index"],
+                infrastructure_deficit_index=reg["infrastructure_deficits"][top_cat],
+                priority_level="Regional Baseline Deficit",
+                estimated_affected_population=int(reg["population"] * 0.15),
+                sample_requests=[]
+            ))
+        return clusters
         
     # Group by state/region or run DBSCAN on coordinates
     clusters_list = []

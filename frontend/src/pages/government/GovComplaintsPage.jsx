@@ -3,7 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { 
   Search, Filter, ArrowUpDown, ChevronRight, MapPin, 
   Clock, Users, AlertCircle, RefreshCw, Layers, CheckCircle2,
-  AlertTriangle, FileText, ArrowRight
+  AlertTriangle, FileText, ArrowRight, Image as ImageIcon,
+  Trash2, X, ZoomIn
 } from 'lucide-react';
 import { getRequests } from '../../services/api';
 
@@ -31,6 +32,7 @@ export default function GovComplaintsPage() {
   const [selectedUrgency, setSelectedUrgency] = useState('ALL');
   const [selectedStatus, setSelectedStatus] = useState('ALL');
   const [sortBy, setSortBy] = useState('urgency_desc');
+  const [activePreviewImg, setActivePreviewImg] = useState(null);
 
   useEffect(() => {
     fetchComplaints();
@@ -47,6 +49,23 @@ export default function GovComplaintsPage() {
       setLoading(false);
     }
   }
+
+  const handleClearAll = async () => {
+    if (!window.confirm('Are you sure you want to clear all complaints? This will reset the database to 0 complaints.')) {
+      return;
+    }
+    setLoading(true);
+    try {
+      const res = await fetch('/api/citizen/requests/clear', { method: 'POST' });
+      if (res.ok) {
+        setRequests([]);
+      }
+    } catch (err) {
+      console.error('Failed to clear complaints:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const filteredRequests = useMemo(() => {
     return requests.filter(item => {
@@ -126,6 +145,16 @@ export default function GovComplaintsPage() {
           >
             <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
             <span>Reload</span>
+          </button>
+
+          <button
+            onClick={handleClearAll}
+            disabled={loading || requests.length === 0}
+            className="px-3.5 py-2 rounded-lg bg-red-50 hover:bg-red-100 text-red-700 text-xs font-semibold border border-red-200 transition flex items-center gap-2 cursor-pointer shadow-xs disabled:opacity-50 disabled:cursor-not-allowed"
+            title="Clear all complaints from database (reset to 0)"
+          >
+            <Trash2 className="w-3.5 h-3.5 text-red-600" />
+            <span>Clear All Complaints</span>
           </button>
         </div>
       </div>
@@ -245,6 +274,7 @@ export default function GovComplaintsPage() {
                 <tr className="bg-[var(--bg-secondary)] border-b border-[var(--border-warm)] text-[var(--text-tertiary)] uppercase tracking-wider text-[10px]">
                   <th className="py-3 px-4 font-bold">ID</th>
                   <th className="py-3 px-4 font-bold">Urgency</th>
+                  <th className="py-3 px-4 font-bold">Evidence Photo</th>
                   <th className="py-3 px-4 font-bold">Sector / Category</th>
                   <th className="py-3 px-4 font-bold">Complaint Description</th>
                   <th className="py-3 px-4 font-bold">Location</th>
@@ -254,62 +284,133 @@ export default function GovComplaintsPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-[var(--border-divider)]">
-                {filteredRequests.map((req) => (
-                  <tr
-                    key={req.id}
-                    onClick={() => navigate(`/gov-demo/complaints/${req.id}`)}
-                    className="hover:bg-[var(--bg-secondary)] transition-colors cursor-pointer group"
-                  >
-                    <td className="py-3.5 px-4 font-mono font-bold text-[var(--accent-primary)] whitespace-nowrap">
-                      {req.id}
-                    </td>
-                    <td className="py-3.5 px-4 whitespace-nowrap">
-                      {getUrgencyBadge(req.urgency)}
-                    </td>
-                    <td className="py-3.5 px-4 whitespace-nowrap">
-                      <span className="px-2 py-0.5 rounded bg-[var(--bg-secondary)] border border-[var(--border-warm)] text-[var(--text-secondary)] text-[11px] font-medium">
-                        {req.category}
-                      </span>
-                    </td>
-                    <td className="py-3.5 px-4 max-w-xs">
-                      <p className="line-clamp-2 text-[var(--text-primary)] group-hover:text-[var(--accent-primary)] transition leading-relaxed">
-                        {req.translated_text || req.original_text}
-                      </p>
-                    </td>
-                    <td className="py-3.5 px-4 whitespace-nowrap text-[var(--text-secondary)]">
-                      <div className="flex items-center gap-1.5">
-                        <MapPin className="w-3.5 h-3.5 text-[var(--accent-primary)] shrink-0" />
-                        <span className="truncate max-w-[140px]">{req.location_name || req.state_province || 'GPS Location'}</span>
-                      </div>
-                    </td>
-                    <td className="py-3.5 px-4 whitespace-nowrap text-[var(--text-primary)]">
-                      <div className="flex items-center gap-1 font-semibold">
-                        <Users className="w-3.5 h-3.5 text-[var(--text-tertiary)]" />
-                        {req.upvotes || 1}
-                      </div>
-                    </td>
-                    <td className="py-3.5 px-4 whitespace-nowrap">
-                      {getStatusBadge(req.status)}
-                    </td>
-                    <td className="py-3.5 px-4 text-right whitespace-nowrap">
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          navigate(`/gov-demo/complaints/${req.id}`);
-                        }}
-                        className="px-3 py-1.5 rounded-lg bg-[var(--bg-secondary)] hover:bg-[var(--accent-primary)] hover:text-white text-[var(--text-primary)] text-xs font-semibold transition inline-flex items-center gap-1 border border-[var(--border-warm)] cursor-pointer"
-                      >
-                        <span>Review</span>
-                        <ChevronRight className="w-3.5 h-3.5" />
-                      </button>
-                    </td>
-                  </tr>
-                ))}
+                {filteredRequests.map((req) => {
+                  const rawImg = req.image_url || (req.evidence && req.evidence[0] && (req.evidence[0].storage_url || req.evidence[0].url));
+                  const hasImage = Boolean(rawImg);
+                  const displayImgUrl = rawImg ? (rawImg.startsWith('http') || rawImg.startsWith('data:') ? rawImg : rawImg) : null;
+
+                  return (
+                    <tr
+                      key={req.id}
+                      onClick={() => navigate(`/gov-demo/complaints/${req.id}`)}
+                      className="hover:bg-[var(--bg-secondary)] transition-colors cursor-pointer group"
+                    >
+                      <td className="py-3.5 px-4 font-mono font-bold text-[var(--accent-primary)] whitespace-nowrap">
+                        {req.id}
+                      </td>
+                      <td className="py-3.5 px-4 whitespace-nowrap">
+                        {getUrgencyBadge(req.urgency)}
+                      </td>
+                      <td className="py-3.5 px-4 whitespace-nowrap" onClick={(e) => e.stopPropagation()}>
+                        {hasImage ? (
+                          <div className="relative inline-block group/img">
+                            <img
+                              src={displayImgUrl}
+                              alt="Evidence attachment"
+                              onClick={() => setActivePreviewImg(displayImgUrl)}
+                              onError={(e) => {
+                                if (!e.target.src.includes('localhost:8000') && !e.target.src.startsWith('data:')) {
+                                  e.target.src = `http://localhost:8000${rawImg.startsWith('/') ? rawImg : '/' + rawImg}`;
+                                }
+                              }}
+                              className="w-12 h-12 rounded-lg object-cover border border-[var(--border-warm)] shadow-xs hover:scale-110 transition duration-200 cursor-pointer bg-[var(--bg-secondary)]"
+                            />
+                            {req.evidence_count > 1 && (
+                              <span className="absolute -top-1 -right-1 bg-[var(--accent-primary)] text-white text-[9px] font-bold rounded-full w-4 h-4 flex items-center justify-center shadow-xs pointer-events-none">
+                                +{req.evidence_count - 1}
+                              </span>
+                            )}
+                          </div>
+                        ) : (
+                          <span className="inline-flex items-center gap-1 text-[11px] text-[var(--text-placeholder)]">
+                            <ImageIcon className="w-3.5 h-3.5" />
+                            <span>No photo</span>
+                          </span>
+                        )}
+                      </td>
+                      <td className="py-3.5 px-4 whitespace-nowrap">
+                        <span className="px-2 py-0.5 rounded bg-[var(--bg-secondary)] border border-[var(--border-warm)] text-[var(--text-secondary)] text-[11px] font-medium">
+                          {req.category}
+                        </span>
+                      </td>
+                      <td className="py-3.5 px-4 max-w-xs">
+                        <p className="line-clamp-2 text-[var(--text-primary)] group-hover:text-[var(--accent-primary)] transition leading-relaxed">
+                          {req.translated_text || req.original_text}
+                        </p>
+                      </td>
+                      <td className="py-3.5 px-4 whitespace-nowrap text-[var(--text-secondary)]">
+                        <div className="flex items-center gap-1.5">
+                          <MapPin className="w-3.5 h-3.5 text-[var(--accent-primary)] shrink-0" />
+                          <span className="truncate max-w-[140px]">{req.location_name || req.state_province || 'GPS Location'}</span>
+                        </div>
+                      </td>
+                      <td className="py-3.5 px-4 whitespace-nowrap text-[var(--text-primary)]">
+                        <div className="flex items-center gap-1 font-semibold">
+                          <Users className="w-3.5 h-3.5 text-[var(--text-tertiary)]" />
+                          {req.upvotes || 1}
+                        </div>
+                      </td>
+                      <td className="py-3.5 px-4 whitespace-nowrap">
+                        {getStatusBadge(req.status)}
+                      </td>
+                      <td className="py-3.5 px-4 text-right whitespace-nowrap">
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            navigate(`/gov-demo/complaints/${req.id}`);
+                          }}
+                          className="px-3 py-1.5 rounded-lg bg-[var(--bg-secondary)] hover:bg-[var(--accent-primary)] hover:text-white text-[var(--text-primary)] text-xs font-semibold transition inline-flex items-center gap-1 border border-[var(--border-warm)] cursor-pointer"
+                        >
+                          <span>Review</span>
+                          <ChevronRight className="w-3.5 h-3.5" />
+                        </button>
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>
         )}
       </div>
+
+      {/* Lightbox / Enlarged Evidence Preview Modal */}
+      {activePreviewImg && (
+        <div 
+          className="fixed inset-0 z-50 bg-black/75 backdrop-blur-sm flex items-center justify-center p-4 animate-fade-in"
+          onClick={() => setActivePreviewImg(null)}
+        >
+          <div 
+            className="relative max-w-3xl w-full bg-white rounded-2xl overflow-hidden shadow-2xl border border-[var(--border-warm)] p-4 space-y-3"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between border-b border-[var(--border-warm)] pb-3">
+              <div className="flex items-center gap-2">
+                <ImageIcon className="w-4 h-4 text-[var(--accent-primary)]" />
+                <h3 className="text-sm font-bold text-[var(--text-primary)]">Citizen Physical Evidence Attachment</h3>
+              </div>
+              <button 
+                onClick={() => setActivePreviewImg(null)}
+                className="p-1.5 rounded-lg text-[var(--text-secondary)] hover:bg-[var(--bg-secondary)] hover:text-[var(--text-primary)] transition cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <div className="flex items-center justify-center max-h-[70vh] bg-[var(--bg-secondary)] rounded-xl overflow-hidden p-2">
+              <img 
+                src={activePreviewImg} 
+                alt="Enlarged Citizen Evidence" 
+                className="max-h-[65vh] w-auto rounded-lg object-contain"
+                onError={(e) => {
+                  if (!e.target.src.includes('localhost:8000') && !e.target.src.startsWith('data:')) {
+                    e.target.src = `http://localhost:8000${activePreviewImg.startsWith('/') ? activePreviewImg : '/' + activePreviewImg}`;
+                  }
+                }}
+              />
+            </div>
+          </div>
+        </div>
+      )}
 
     </div>
   );

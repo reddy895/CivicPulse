@@ -20,7 +20,7 @@ function EvidenceGallery({ complaintId, onOpenLightbox }) {
     if (!complaintId) return;
     fetch(`${API_BASE}/complaints/${complaintId}/evidence`)
       .then(r => r.ok ? r.json() : [])
-      .then(data => { setEvidence(data); setLoading(false); })
+      .then(data => { setEvidence(Array.isArray(data) ? data : (data?.evidence || [])); setLoading(false); })
       .catch(() => setLoading(false));
   }, [complaintId]);
 

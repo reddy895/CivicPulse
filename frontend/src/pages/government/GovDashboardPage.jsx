@@ -234,21 +234,35 @@ export default function GovDashboardPage() {
               </div>
             ) : (
               <div className="divide-y divide-[var(--border-divider)]">
-                {requests.slice(0, 6).map((req) => (
-                  <div 
-                    key={req.id} 
-                    onClick={() => navigate(`/gov-demo/complaints/${req.id}`)}
-                    className="py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:bg-[var(--bg-secondary)] -mx-4 px-4 rounded-xl transition cursor-pointer group"
-                  >
-                    <div className="space-y-1.5 flex-1 min-w-0">
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <span className="font-mono text-xs text-[var(--accent-primary)] font-bold">{req.id}</span>
-                        {getUrgencyBadge(req.urgency)}
-                        <span className="text-[11px] px-2 py-0.5 rounded bg-[var(--bg-secondary)] text-[var(--text-secondary)] border border-[var(--border-warm)] font-medium">
-                          {req.category}
-                        </span>
-                        {getStatusBadge(req.status)}
-                      </div>
+                {requests.slice(0, 6).map((req) => {
+                  const rawImg = req.image_url || (req.evidence && req.evidence[0] && (req.evidence[0].storage_url || req.evidence[0].url));
+                  return (
+                    <div 
+                      key={req.id} 
+                      onClick={() => navigate(`/gov-demo/complaints/${req.id}`)}
+                      className="py-4 flex items-center justify-between gap-4 hover:bg-[var(--bg-secondary)] -mx-4 px-4 rounded-xl transition cursor-pointer group"
+                    >
+                      {rawImg && (
+                        <img
+                          src={rawImg}
+                          alt="Grievance thumbnail"
+                          onError={(e) => {
+                            if (!e.target.src.includes('localhost:8000') && !e.target.src.startsWith('data:')) {
+                              e.target.src = `http://localhost:8000${rawImg.startsWith('/') ? rawImg : '/' + rawImg}`;
+                            }
+                          }}
+                          className="w-12 h-12 rounded-lg object-cover border border-[var(--border-warm)] shrink-0 shadow-xs group-hover:scale-105 transition bg-[var(--bg-secondary)]"
+                        />
+                      )}
+                      <div className="space-y-1.5 flex-1 min-w-0">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className="font-mono text-xs text-[var(--accent-primary)] font-bold">{req.id}</span>
+                          {getUrgencyBadge(req.urgency)}
+                          <span className="text-[11px] px-2 py-0.5 rounded bg-[var(--bg-secondary)] text-[var(--text-secondary)] border border-[var(--border-warm)] font-medium">
+                            {req.category}
+                          </span>
+                          {getStatusBadge(req.status)}
+                        </div>
                       <p className="text-xs text-[var(--text-primary)] font-medium line-clamp-1 group-hover:text-[var(--accent-primary)] transition">
                         {req.translated_text || req.original_text}
                       </p>
@@ -275,8 +289,9 @@ export default function GovDashboardPage() {
                         Action →
                       </button>
                     </div>
-                  </div>
-                ))}
+                    </div>
+                  );
+                })}
               </div>
             )}
           </div>

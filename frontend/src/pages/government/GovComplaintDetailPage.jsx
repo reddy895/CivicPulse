@@ -63,15 +63,32 @@ export default function GovComplaintDetailPage() {
       }
 
       // Fetch evidence list
+      let evItems = [];
       try {
         const evRes = await fetch(`/api/complaints/${id}/evidence`);
         if (evRes.ok) {
           const evData = await evRes.json();
-          setEvidenceList(evData.evidence || []);
+          evItems = Array.isArray(evData) ? evData : (evData.evidence || evData.items || []);
         }
       } catch (e) {
         console.warn('Could not fetch evidence:', e);
       }
+
+      // Check fallback to data.evidence or data.image_url if API returned empty
+      if (evItems.length === 0 && data) {
+        if (data.evidence && data.evidence.length > 0) {
+          evItems = data.evidence;
+        } else if (data.image_url) {
+          evItems = [{
+            id: 'primary',
+            file_id: 'primary',
+            storage_url: data.image_url,
+            url: data.image_url,
+            filename: 'evidence.jpg'
+          }];
+        }
+      }
+      setEvidenceList(evItems);
     } catch (err) {
       console.error('Failed to load complaint:', err);
     } finally {
@@ -281,22 +298,31 @@ export default function GovComplaintDetailPage() {
               </div>
             ) : (
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                {evidenceList.map((item, idx) => (
-                  <div 
-                    key={idx}
-                    onClick={() => setActiveLightboxImg(item.url || `/api/evidence/${item.file_id}`)}
-                    className="relative group rounded-lg overflow-hidden aspect-video bg-[var(--bg-secondary)] border border-[var(--border-warm)] cursor-pointer"
-                  >
-                    <img
-                      src={item.url || `/api/evidence/${item.file_id}`}
-                      alt={`Evidence ${idx + 1}`}
-                      className="w-full h-full object-cover group-hover:scale-105 transition duration-300"
-                    />
-                    <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition flex items-center justify-center">
-                      <ZoomIn className="w-5 h-5 text-white" />
+                {evidenceList.map((item, idx) => {
+                  const rawSrc = item.storage_url || item.url || (item.filename ? `/api/evidence/${id}/${item.filename}` : `/api/evidence/${item.file_id}`);
+                  const displaySrc = rawSrc.startsWith('http') || rawSrc.startsWith('data:') ? rawSrc : rawSrc;
+                  return (
+                    <div 
+                      key={idx}
+                      onClick={() => setActiveLightboxImg(displaySrc)}
+                      className="relative group rounded-lg overflow-hidden aspect-video bg-[var(--bg-secondary)] border border-[var(--border-warm)] cursor-pointer"
+                    >
+                      <img
+                        src={displaySrc}
+                        alt={`Evidence ${idx + 1}`}
+                        onError={(e) => {
+                          if (!e.target.src.includes('localhost:8000') && !e.target.src.startsWith('data:')) {
+                            e.target.src = `http://localhost:8000${rawSrc.startsWith('/') ? rawSrc : '/' + rawSrc}`;
+                          }
+                        }}
+                        className="w-full h-full object-cover group-hover:scale-105 transition duration-300"
+                      />
+                      <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition flex items-center justify-center">
+                        <ZoomIn className="w-5 h-5 text-white" />
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             )}
           </div>

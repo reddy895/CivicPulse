@@ -23,8 +23,9 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Register API Router
+# Register API Router under /api and root fallback
 app.include_router(api_router, prefix="/api")
+app.include_router(api_router)
 
 @app.get("/")
 async def root():

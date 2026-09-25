@@ -117,6 +117,7 @@ export default function ReportNewPage() {
         text: description, channel: 'text', country_code: user?.country_code||'IND',
         location_name: location.name, latitude: location.lat, longitude: location.lng,
         citizen_name: user?.name||'Citizen', submitter_id: user?.id, submitter_email: user?.email,
+        category: category,
       });
       // Upload evidence
       let uploaded = 0;
