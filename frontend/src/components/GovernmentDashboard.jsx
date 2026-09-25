@@ -113,8 +113,9 @@ export default function GovernmentDashboard({
               <span>•</span>
               <span>Jurisdiction: <strong className="text-[#FDFBF7]">{user?.country_name || 'India'} Sovereign Command</strong></span>
               <span>•</span>
-              <span className="text-[#5A8F6E] font-bold flex items-center gap-1">
-                🟢 Real-Time Live Sync Active
+              <span className="text-[#5A8F6E] font-bold flex items-center gap-1.5">
+                <span className="w-2 h-2 rounded-full bg-emerald-400 inline-block animate-pulse" />
+                <span>Real-Time Live Sync Active</span>
               </span>
             </p>
           </div>

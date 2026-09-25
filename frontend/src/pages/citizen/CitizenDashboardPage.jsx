@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Plus, RefreshCw, Loader2, MapPin, Clock, Image, FileText } from 'lucide-react';
+import { Plus, RefreshCw, Loader2, MapPin, Clock, Image, FileText, Check, ClipboardList } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../context/AuthContext';
 import { getRequests } from '../../services/api';
@@ -17,7 +17,7 @@ function Timeline({ status }) {
         <React.Fragment key={s}>
           <div className="flex flex-col items-center">
             <div className={`w-5 h-5 rounded-full flex items-center justify-center text-[9px] font-bold ${i < cur ? 'bg-[var(--status-success)] text-white' : i === cur ? 'bg-[var(--accent-primary)] text-white ring-2 ring-[var(--accent-primary)]/30' : 'bg-[var(--bg-secondary)] text-[var(--text-tertiary)] border border-[var(--border-warm)]'}`}>
-              {i < cur ? '✓' : i + 1}
+              {i < cur ? <Check className="w-3 h-3 text-white" /> : i + 1}
             </div>
             <span className="text-[8px] font-medium text-[var(--text-tertiary)] mt-1 hidden sm:block whitespace-nowrap">{s}</span>
           </div>
@@ -62,7 +62,7 @@ export default function CitizenDashboardPage() {
         <div className="space-y-4">{Array(3).fill(0).map((_,i)=><div key={i} className="h-28 skeleton rounded-xl"/>)}</div>
       ) : reports.length === 0 ? (
         <div className="card-coffee p-16 text-center">
-          <div className="text-5xl mb-4">📋</div>
+          <ClipboardList className="w-12 h-12 text-[var(--accent-primary)] mx-auto mb-4 opacity-80" />
           <h2 className="text-xl font-bold text-[var(--text-primary)]">No reports yet</h2>
           <p className="text-[var(--text-secondary)] mt-2 text-sm">Start by reporting an infrastructure issue in your community.</p>
           <Link to="/report/new" className="btn-primary mt-6 inline-flex"><Plus className="w-4 h-4"/>Report First Issue</Link>

@@ -1,9 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { 
-  MapPin, ChevronRight, FileText, Activity, MessageSquare, ThumbsUp
+  MapPin, ChevronRight, FileText, Activity, MessageSquare, ThumbsUp, AlertCircle, Layers, SlidersHorizontal
 } from 'lucide-react';
 import { getHotspots, getRequests, upvoteRequest } from '../services/api';
 import L from 'leaflet';
+import 'leaflet/dist/leaflet.css';
 
 const COUNTRY_COORDS = {
   ALL: { center: [20.0, 30.0], zoom: 2 },
@@ -42,91 +43,119 @@ export default function GISMap({ selectedCountry, onSelectProject, onOpenCopilot
 
   useEffect(() => {
     loadData();
-    const interval = setInterval(loadData, 3000);
+    const interval = setInterval(loadData, 4000);
     return () => clearInterval(interval);
   }, [selectedCountry]);
 
   async function loadData() {
-    const [hData, rData] = await Promise.all([
-      getHotspots(selectedCountry),
-      getRequests(selectedCountry === 'ALL' ? null : selectedCountry)
-    ]);
-    
-    // Ensure Karnataka hotspot exists if Karnataka requests exist
-    const kaRequests = rData.filter(r => 
-      (r.state_province && r.state_province.toLowerCase().includes('karnataka')) ||
-      (r.location_name && (r.location_name.toLowerCase().includes('karnataka') || r.location_name.toLowerCase().includes('bengaluru') || r.location_name.toLowerCase().includes('bangalore')))
-    );
+    try {
+      const [hData, rData] = await Promise.all([
+        getHotspots(selectedCountry),
+        getRequests(selectedCountry === 'ALL' ? null : selectedCountry)
+      ]);
+      
+      const kaRequests = (rData || []).filter(r => 
+        (r.state_province && r.state_province.toLowerCase().includes('karnataka')) ||
+        (r.location_name && (r.location_name.toLowerCase().includes('karnataka') || r.location_name.toLowerCase().includes('bengaluru') || r.location_name.toLowerCase().includes('bangalore')))
+      );
 
-    let processedHotspots = [...hData];
-    const hasKaHotspot = processedHotspots.some(h => (h.state_province || '').toLowerCase().includes('karnataka'));
-    
-    if (kaRequests.length > 0 && !hasKaHotspot) {
-      processedHotspots.unshift({
-        id: "HOTSPOT-IND_Karnataka",
-        cluster_name: "Bengaluru Urban & Rural (Water, Roads & Flood)",
-        country_code: "IND",
-        state_province: "Karnataka",
-        latitude: 12.9716,
-        longitude: 77.5946,
-        radius_km: 5.2,
-        request_count: kaRequests.length,
-        top_category: kaRequests[0]?.category || "Water & Sanitation",
-        avg_urgency_score: 0.88,
-        vulnerability_index: 0.62,
-        infrastructure_deficit_index: 0.78,
-        priority_level: "Critical Demand Hotspot",
-        estimated_affected_population: 1850000,
-        sample_requests: kaRequests.map(r => r.translated_text || r.original_text)
-      });
-    }
-
-    setHotspots(processedHotspots);
-    setLiveRequests(rData);
-
-    // Default select Karnataka or first hotspot if none selected
-    setSelectedHotspot(prev => {
-      if (prev) {
-        // Keep selected hotspot updated with latest data
-        const updated = processedHotspots.find(h => h.id === prev.id || h.state_province === prev.state_province);
-        return updated || prev;
+      let processedHotspots = [...(hData || [])];
+      const hasKaHotspot = processedHotspots.some(h => (h.state_province || '').toLowerCase().includes('karnataka'));
+      
+      if (kaRequests.length > 0 && !hasKaHotspot) {
+        processedHotspots.unshift({
+          id: "HOTSPOT-IND_Karnataka",
+          cluster_name: "Bengaluru Urban & Rural Infrastructure Corridor",
+          country_code: "IND",
+          state_province: "Karnataka",
+          latitude: 12.9716,
+          longitude: 77.5946,
+          radius_km: 5.2,
+          request_count: kaRequests.length,
+          top_category: kaRequests[0]?.category || "Water & Sanitation",
+          avg_urgency_score: 0.88,
+          vulnerability_index: 0.62,
+          infrastructure_deficit_index: 0.78,
+          priority_level: "Critical Demand Hotspot",
+          estimated_affected_population: 1850000,
+          sample_requests: kaRequests.map(r => r.translated_text || r.original_text)
+        });
       }
-      const kaSpot = processedHotspots.find(h => (h.state_province || '').toLowerCase().includes('karnataka'));
-      return kaSpot || processedHotspots[0] || null;
-    });
 
-    setIsLoading(false);
+      setHotspots(processedHotspots);
+      setLiveRequests(rData || []);
+
+      setSelectedHotspot(prev => {
+        if (prev) {
+          const updated = processedHotspots.find(h => h.id === prev.id || h.state_province === prev.state_province);
+          return updated || prev;
+        }
+        const kaSpot = processedHotspots.find(h => (h.state_province || '').toLowerCase().includes('karnataka'));
+        return kaSpot || processedHotspots[0] || null;
+      });
+
+      setIsLoading(false);
+    } catch (err) {
+      console.error("Failed to load map data:", err);
+      setIsLoading(false);
+    }
   }
 
-  // Initialize Map container once
+  // Initialize Map container once with proper cleanup
   useEffect(() => {
     if (!mapContainerRef.current) return;
 
-    if (!mapInstanceRef.current) {
-      const initial = COUNTRY_COORDS[selectedCountry] || COUNTRY_COORDS.ALL;
-      const map = L.map(mapContainerRef.current, {
-        center: initial.center,
-        zoom: initial.zoom,
-        zoomControl: true,
-        attributionControl: false
-      });
-
-      // CartoDB Positron light theme tiles
-      L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
-        maxZoom: 19,
-        subdomains: 'abcd'
-      }).addTo(map);
-
-      layerGroupRef.current = L.layerGroup().addTo(map);
-      mapInstanceRef.current = map;
+    if (mapInstanceRef.current) {
+      mapInstanceRef.current.remove();
+      mapInstanceRef.current = null;
     }
+
+    const initial = COUNTRY_COORDS[selectedCountry] || COUNTRY_COORDS.IND;
+    const map = L.map(mapContainerRef.current, {
+      center: initial.center,
+      zoom: initial.zoom,
+      zoomControl: true,
+      attributionControl: false
+    });
+
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+      maxZoom: 19,
+      subdomains: 'abcd'
+    }).addTo(map);
+
+    const layerGroup = L.layerGroup().addTo(map);
+    layerGroupRef.current = layerGroup;
+    mapInstanceRef.current = map;
+
+    // Invalidate size to guarantee no partial renders
+    const timer = setTimeout(() => {
+      if (mapInstanceRef.current) {
+        mapInstanceRef.current.invalidateSize();
+      }
+    }, 250);
+
+    const onResize = () => {
+      if (mapInstanceRef.current) {
+        mapInstanceRef.current.invalidateSize();
+      }
+    };
+    window.addEventListener('resize', onResize);
+
+    return () => {
+      clearTimeout(timer);
+      window.removeEventListener('resize', onResize);
+      if (mapInstanceRef.current) {
+        mapInstanceRef.current.remove();
+        mapInstanceRef.current = null;
+      }
+    };
   }, []);
 
   // Handle camera position when selectedCountry changes
   useEffect(() => {
     if (!mapInstanceRef.current) return;
-    if (focusedState) return; // don't override state focus
-    const target = COUNTRY_COORDS[selectedCountry] || COUNTRY_COORDS.ALL;
+    if (focusedState) return;
+    const target = COUNTRY_COORDS[selectedCountry] || COUNTRY_COORDS.IND;
     mapInstanceRef.current.flyTo(target.center, target.zoom, { duration: 0.8 });
   }, [selectedCountry]);
 
@@ -140,21 +169,20 @@ export default function GISMap({ selectedCountry, onSelectProject, onOpenCopilot
     // 1. Render Cluster Hotspots
     hotspots.forEach((h) => {
       const isKa = (h.state_province || '').toLowerCase().includes('karnataka');
-      const isCritical = isKa || h.priority_level.includes('Critical') || h.avg_urgency_score > 0.75;
+      const isCritical = isKa || (h.priority_level && h.priority_level.includes('Critical')) || h.avg_urgency_score > 0.75;
       const isMedium = h.avg_urgency_score > 0.55;
       
-      const dotColor = isKa ? '#E11D48' : (isCritical ? '#B54A4A' : (isMedium ? '#A67B5B' : '#D4A373'));
-      const dotSize = isKa ? 24 : (isCritical ? 20 : (isMedium ? 15 : 12));
-
+      const dotColor = isKa ? '#B02626' : (isCritical ? '#B8720A' : (isMedium ? '#6F4E37' : '#D4A373'));
+      const dotSize = isKa ? 26 : (isCritical ? 22 : (isMedium ? 16 : 14));
       const isSelected = selectedHotspot && (selectedHotspot.id === h.id || selectedHotspot.state_province === h.state_province);
 
       const iconHtml = `
         <div style="position: relative; width: ${dotSize}px; height: ${dotSize}px; display: flex; align-items: center; justify-content: center; cursor: pointer;">
-          <span style="position: absolute; width: ${dotSize * 2.2}px; height: ${dotSize * 2.2}px; border-radius: 50%; background: ${dotColor}; opacity: ${isSelected ? '0.5' : '0.25'}; animation: ping 2s cubic-bezier(0, 0, 0.2, 1) infinite;"></span>
-          <span style="width: ${dotSize}px; height: ${dotSize}px; border-radius: 50%; background: ${dotColor}; border: ${isSelected ? '3px solid #2C1810' : '2px solid #FFFFFF'}; box-shadow: 0 3px 10px rgba(0,0,0,0.35); display: flex; align-items: center; justify-content: center; color: #FFFFFF; font-size: 10px; font-weight: bold; font-family: sans-serif;">
+          <span style="position: absolute; width: ${dotSize * 2.2}px; height: ${dotSize * 2.2}px; border-radius: 50%; background: ${dotColor}; opacity: ${isSelected ? '0.45' : '0.22'}; animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;"></span>
+          <span style="width: ${dotSize}px; height: ${dotSize}px; border-radius: 50%; background: ${dotColor}; border: ${isSelected ? '2.5px solid #1C0F07' : '2px solid #FFFFFF'}; box-shadow: 0 3px 10px rgba(28,15,7,0.25); display: flex; align-items: center; justify-content: center; color: #FFFFFF; font-size: 10px; font-weight: 700; font-family: Inter, sans-serif;">
             ${h.request_count || ''}
           </span>
-          ${isKa ? `<div style="position: absolute; bottom: -18px; white-space: nowrap; background: #2C1810; color: #FFF; font-size: 9px; font-weight: bold; padding: 1px 5px; border-radius: 4px; box-shadow: 0 2px 4px rgba(0,0,0,0.2);">📍 KARNATAKA</div>` : ''}
+          ${isKa ? `<div style="position: absolute; bottom: -20px; white-space: nowrap; background: #1C0F07; color: #FFFFFF; font-size: 9px; font-weight: 700; padding: 2px 6px; border-radius: 4px; box-shadow: 0 2px 6px rgba(0,0,0,0.25); letter-spacing: 0.04em;">KARNATAKA</div>` : ''}
         </div>
       `;
 
@@ -180,14 +208,14 @@ export default function GISMap({ selectedCountry, onSelectProject, onOpenCopilot
       const isKarnataka = (req.state_province && req.state_province.toLowerCase().includes('karnataka')) || 
                           (req.location_name && (req.location_name.toLowerCase().includes('karnataka') || req.location_name.toLowerCase().includes('bengaluru') || req.location_name.toLowerCase().includes('bangalore')));
       
-      const pinColor = isKarnataka ? '#DC2626' : (req.urgency === 'Critical' ? '#B54A4A' : '#10B981');
-      const pinSize = isKarnataka ? 18 : 13;
+      const pinColor = isKarnataka ? '#B02626' : (req.urgency === 'Critical' ? '#B02626' : (req.urgency === 'High' ? '#B8720A' : '#2D7A50'));
+      const pinSize = isKarnataka ? 18 : 14;
 
       const pinHtml = `
         <div style="position: relative; width: ${pinSize}px; height: ${pinSize}px; display: flex; align-items: center; justify-content: center; cursor: pointer;">
-          <span style="position: absolute; width: ${pinSize * 2}px; height: ${pinSize * 2}px; border-radius: 50%; background: ${pinColor}; opacity: 0.4; animation: ping 1.5s infinite;"></span>
-          <span style="width: ${pinSize}px; height: ${pinSize}px; border-radius: 50%; background: ${pinColor}; border: 2px solid #FFFFFF; box-shadow: 0 2px 8px rgba(0,0,0,0.4); display: flex; align-items: center; justify-content: center; font-size: 8px; color: white;">
-            ${isKarnataka ? '🚨' : '•'}
+          <span style="position: absolute; width: ${pinSize * 1.8}px; height: ${pinSize * 1.8}px; border-radius: 50%; background: ${pinColor}; opacity: 0.35;"></span>
+          <span style="width: ${pinSize}px; height: ${pinSize}px; border-radius: 50%; background: ${pinColor}; border: 2px solid #FFFFFF; box-shadow: 0 2px 6px rgba(28,15,7,0.3); display: flex; align-items: center; justify-content: center; font-size: 8px; font-weight: 800; color: #FFFFFF; font-family: Inter, sans-serif;">
+            ${isKarnataka ? '!' : '•'}
           </span>
         </div>
       `;
@@ -200,23 +228,22 @@ export default function GISMap({ selectedCountry, onSelectProject, onOpenCopilot
       const cMarker = L.marker([req.latitude, req.longitude], { icon: pinIcon, zIndexOffset: isKarnataka ? 1000 : 800 });
       
       cMarker.bindPopup(`
-        <div style="font-family: sans-serif; font-size: 11px; padding: 6px; min-width: 180px;">
-          <div style="font-weight: bold; color: #2C1810; margin-bottom: 2px; display: flex; align-items: center; justify-content: space-between;">
-            <span>🚨 ${req.category}</span>
-            <span style="background: #FEE2E2; color: #991B1B; padding: 1px 4px; border-radius: 3px; font-size: 9px;">${req.urgency}</span>
+        <div style="font-family: Inter, sans-serif; font-size: 11px; padding: 4px; min-width: 200px; color: #1C0F07;">
+          <div style="font-weight: 700; color: #1C0F07; margin-bottom: 4px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid #E8E0D5; padding-bottom: 4px;">
+            <span>${req.category}</span>
+            <span style="background: ${req.urgency === 'Critical' ? '#FEF0F0' : '#FEF6E7'}; color: ${req.urgency === 'Critical' ? '#B02626' : '#B8720A'}; padding: 1px 6px; border-radius: 4px; font-size: 9px; font-weight: 700;">${req.urgency}</span>
           </div>
-          <div style="color: #4B5563; font-size: 10px; margin-bottom: 4px;">📍 ${req.location_name || req.state_province}</div>
-          <div style="color: #1F2937; margin-bottom: 6px; font-style: italic;">"${req.translated_text || req.original_text}"</div>
-          <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid #E5E7EB; padding-top: 4px; font-size: 9px; color: #6B7280;">
-            <span>By: ${req.submitter_name || 'Citizen'}</span>
-            <span>👍 ${req.upvotes || 1} upvotes</span>
+          <div style="color: #5C4A42; font-size: 10px; margin-bottom: 4px;">Location: <strong>${req.location_name || req.state_province}</strong></div>
+          <div style="color: #1C0F07; margin-bottom: 6px; line-height: 1.4; font-size: 11px;">"${req.translated_text || req.original_text}"</div>
+          <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid #F0EBE3; padding-top: 4px; font-size: 10px; color: #9C8C84;">
+            <span>Submitter: ${req.submitter_name || 'Citizen'}</span>
+            <span style="font-weight: 600; color: #6F4E37;">${req.upvotes || 1} Endorsements</span>
           </div>
         </div>
       `);
 
       cMarker.on('click', () => {
         setSelectedRequest(req);
-        // Find matching hotspot
         const matchHs = hotspots.find(h => 
           (h.state_province && req.state_province && h.state_province.toLowerCase() === req.state_province.toLowerCase()) ||
           (isKarnataka && (h.state_province || '').toLowerCase().includes('karnataka'))
@@ -239,7 +266,6 @@ export default function GISMap({ selectedCountry, onSelectProject, onOpenCopilot
       mapInstanceRef.current.flyTo(target.center, target.zoom, { duration: 0.8 });
     }
     
-    // Select the hotspot for this state
     const matched = hotspots.find(h => (h.state_province || '').toLowerCase().includes(stateName.toLowerCase()));
     if (matched) {
       setSelectedHotspot(matched);
@@ -249,9 +275,13 @@ export default function GISMap({ selectedCountry, onSelectProject, onOpenCopilot
 
   const handleUpvoteComplaint = async (reqId, e) => {
     if (e) e.stopPropagation();
-    const res = await upvoteRequest(reqId);
-    if (res) {
-      setLiveRequests(prev => prev.map(r => r.id === reqId ? { ...r, upvotes: res.upvotes } : r));
+    try {
+      const res = await upvoteRequest(reqId);
+      if (res) {
+        setLiveRequests(prev => prev.map(r => r.id === reqId ? { ...r, upvotes: res.upvotes } : r));
+      }
+    } catch (err) {
+      console.error("Upvote error:", err);
     }
   };
 
@@ -291,60 +321,59 @@ export default function GISMap({ selectedCountry, onSelectProject, onOpenCopilot
     );
   });
 
-  // Calculate Karnataka-specific counts
   const karnatakaComplaintsCount = liveRequests.filter(r => 
     (r.state_province && r.state_province.toLowerCase().includes('karnataka')) ||
     (r.location_name && (r.location_name.toLowerCase().includes('karnataka') || r.location_name.toLowerCase().includes('bengaluru') || r.location_name.toLowerCase().includes('bangalore')))
   ).length;
 
-  const totalSignals = hotspots.reduce((acc, h) => acc + h.request_count, 0) + liveRequests.length;
-  const totalImpacted = hotspots.reduce((acc, h) => acc + h.estimated_affected_population, 0);
+  const totalSignals = hotspots.reduce((acc, h) => acc + (h.request_count || 0), 0) + liveRequests.length;
+  const totalImpacted = hotspots.reduce((acc, h) => acc + (h.estimated_affected_population || 0), 0);
 
   return (
-    <div className="max-w-[1440px] mx-auto px-8 space-y-6">
+    <div className="w-full space-y-6">
       
       {/* 1. Top Metrics Bar */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-        <div className="card-coffee p-5 space-y-1">
-          <div className="text-label">Citizen Signals</div>
-          <div className="text-kpi">{totalSignals.toLocaleString()}</div>
-          <div className="text-kpi-sub">Multilingual verified grassroots reports</div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="bg-white rounded-xl border border-[var(--border-warm)] p-4 shadow-sm space-y-1">
+          <div className="text-[11px] font-semibold tracking-wider uppercase text-[var(--text-tertiary)]">Citizen Signals</div>
+          <div className="text-2xl font-bold text-[var(--text-primary)] font-mono">{totalSignals.toLocaleString()}</div>
+          <div className="text-xs text-[var(--text-secondary)]">Multilingual verified grassroots records</div>
         </div>
 
-        <div className="card-coffee p-5 space-y-1">
-          <div className="text-label">Priority Hotspots</div>
-          <div className="text-kpi text-[#B54A4A]">{hotspots.length}</div>
-          <div className="text-kpi-sub">Active geospatial demand clusters</div>
+        <div className="bg-white rounded-xl border border-[var(--border-warm)] p-4 shadow-sm space-y-1">
+          <div className="text-[11px] font-semibold tracking-wider uppercase text-[var(--text-tertiary)]">Priority Hotspots</div>
+          <div className="text-2xl font-bold text-[var(--status-danger)] font-mono">{hotspots.length}</div>
+          <div className="text-xs text-[var(--text-secondary)]">Active geospatial demand clusters</div>
         </div>
 
-        <div className="card-coffee p-5 space-y-1">
-          <div className="text-label">People Impacted</div>
-          <div className="text-kpi">{totalImpacted.toLocaleString()}</div>
-          <div className="text-kpi-sub">Direct municipal population radius</div>
+        <div className="bg-white rounded-xl border border-[var(--border-warm)] p-4 shadow-sm space-y-1">
+          <div className="text-[11px] font-semibold tracking-wider uppercase text-[var(--text-tertiary)]">Citizens Impacted</div>
+          <div className="text-2xl font-bold text-[var(--text-primary)] font-mono">{totalImpacted.toLocaleString()}</div>
+          <div className="text-xs text-[var(--text-secondary)]">Direct municipal population perimeter</div>
         </div>
 
-        <div className="card-coffee p-5 space-y-1">
-          <div className="text-label">Capital Under Review</div>
-          <div className="text-kpi text-[#5A8F6E]">$184.5M</div>
-          <div className="text-kpi-sub">National infrastructure budget</div>
+        <div className="bg-white rounded-xl border border-[var(--border-warm)] p-4 shadow-sm space-y-1">
+          <div className="text-[11px] font-semibold tracking-wider uppercase text-[var(--text-tertiary)]">Capital Under Review</div>
+          <div className="text-2xl font-bold text-[var(--status-success)] font-mono">$184.5M</div>
+          <div className="text-xs text-[var(--text-secondary)]">National infrastructure budget pipeline</div>
         </div>
       </div>
 
       {/* 2. Map Section Header & Quick Regional Focus Toolbar */}
-      <div className="card-coffee p-5 space-y-4">
+      <div className="bg-white rounded-xl border border-[var(--border-warm)] p-5 space-y-4 shadow-sm">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
-            <h2 className="text-lg font-bold text-[#2C1810] tracking-tight flex items-center gap-2">
-              <MapPin className="w-5 h-5 text-[#6F4E37]" />
+            <h2 className="text-base font-bold text-[var(--text-primary)] tracking-tight flex items-center gap-2">
+              <MapPin className="w-5 h-5 text-[var(--accent-primary)]" />
               Geospatial Demand Intelligence & Complaint Verification
             </h2>
-            <p className="text-xs text-[#5C4A42]">
-              Click any regional cluster or complaint marker on the map to inspect citizen-filed grievances in real-time.
+            <p className="text-xs text-[var(--text-secondary)] mt-0.5">
+              Click any regional cluster or complaint marker to inspect citizen-filed grievances in real time.
             </p>
           </div>
 
           {/* Map Layer Controls */}
-          <div className="flex items-center gap-1 p-1 bg-[#F5F0E8] rounded-lg border border-[#E8E0D5]">
+          <div className="flex items-center gap-1 p-1 bg-[var(--bg-secondary)] rounded-lg border border-[var(--border-warm)]">
             {[
               { id: 'demand', label: 'Demand Density' },
               { id: 'deficit', label: 'Infra Deficit' },
@@ -355,8 +384,8 @@ export default function GISMap({ selectedCountry, onSelectProject, onOpenCopilot
                 onClick={() => setActiveLayer(l.id)}
                 className={`px-3 py-1.5 text-xs font-semibold rounded-md transition-colors cursor-pointer ${
                   activeLayer === l.id
-                    ? 'bg-[#FFFFFF] text-[#6F4E37] shadow-sm'
-                    : 'text-[#5C4A42] hover:text-[#2C1810]'
+                    ? 'bg-white text-[var(--accent-primary)] shadow-sm'
+                    : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
                 }`}
               >
                 {l.label}
@@ -365,10 +394,10 @@ export default function GISMap({ selectedCountry, onSelectProject, onOpenCopilot
           </div>
         </div>
 
-        {/* Quick Region Focus Pills (Spotlight on Karnataka) */}
-        <div className="pt-2 border-t border-[#F0EBE3] flex items-center gap-2 overflow-x-auto pb-1 text-xs">
-          <span className="text-[11px] font-bold text-[#8C7A70] uppercase tracking-wider shrink-0">
-            Quick Jump:
+        {/* Quick Region Focus Pills */}
+        <div className="pt-3 border-t border-[var(--border-divider)] flex items-center gap-2 overflow-x-auto pb-1 text-xs">
+          <span className="text-[11px] font-bold text-[var(--text-tertiary)] uppercase tracking-wider shrink-0">
+            Quick Focus:
           </span>
 
           <button
@@ -377,25 +406,26 @@ export default function GISMap({ selectedCountry, onSelectProject, onOpenCopilot
               const target = COUNTRY_COORDS[selectedCountry] || COUNTRY_COORDS.IND;
               mapInstanceRef.current?.flyTo(target.center, target.zoom);
             }}
-            className={`px-2.5 py-1 rounded-full font-semibold border transition shrink-0 ${
-              !focusedState ? 'bg-[#2C1810] text-[#FFFFFF] border-[#2C1810]' : 'bg-[#FFFFFF] text-[#5C4A42] border-[#E8E0D5] hover:border-[#D4A373]'
+            className={`px-3 py-1 rounded-full font-medium border transition shrink-0 cursor-pointer ${
+              !focusedState ? 'bg-[var(--accent-primary)] text-white border-[var(--accent-primary)]' : 'bg-white text-[var(--text-secondary)] border-[var(--border-warm)] hover:border-[var(--accent-tertiary)]'
             }`}
           >
             All National Spots
           </button>
 
-          {/* Highlighted Karnataka Quick Pill */}
+          {/* Karnataka Quick Pill */}
           <button
             onClick={() => handleFocusState('Karnataka')}
-            className={`px-3 py-1 rounded-full font-bold border transition shrink-0 flex items-center gap-1.5 ${
+            className={`px-3.5 py-1 rounded-full font-semibold border transition shrink-0 flex items-center gap-1.5 cursor-pointer ${
               focusedState === 'Karnataka' || (selectedHotspot && (selectedHotspot.state_province || '').toLowerCase().includes('karnataka'))
-                ? 'bg-[#E11D48] text-white border-[#BE123C] shadow-sm animate-pulse'
-                : 'bg-[#FFE4E6] text-[#9F1239] border-[#FECDD3] hover:bg-[#FCD34D]'
+                ? 'bg-[var(--status-danger)] text-white border-[var(--status-danger)] shadow-sm'
+                : 'bg-[var(--status-danger-bg)] text-[var(--status-danger)] border-[var(--status-danger-border)] hover:bg-red-100'
             }`}
           >
-            <span>🚨 Karnataka (Bengaluru)</span>
-            <span className="px-1.5 py-0.2 rounded-full bg-white/30 text-[10px]">
-              {karnatakaComplaintsCount} Complaints
+            <span className="w-2 h-2 rounded-full bg-white shrink-0" />
+            <span>Karnataka (Bengaluru)</span>
+            <span className="px-1.5 py-0.5 rounded-full bg-white/25 text-[10px] font-mono">
+              {karnatakaComplaintsCount} Reports
             </span>
           </button>
 
@@ -406,15 +436,15 @@ export default function GISMap({ selectedCountry, onSelectProject, onOpenCopilot
               <button
                 key={stateKey}
                 onClick={() => handleFocusState(stateKey)}
-                className={`px-2.5 py-1 rounded-full font-semibold border transition shrink-0 flex items-center gap-1 ${
+                className={`px-3 py-1 rounded-full font-medium border transition shrink-0 flex items-center gap-1.5 cursor-pointer ${
                   isSel
-                    ? 'bg-[#6F4E37] text-white border-[#6F4E37]'
-                    : 'bg-[#FFFFFF] text-[#5C4A42] border-[#E8E0D5] hover:border-[#D4A373]'
+                    ? 'bg-[var(--accent-primary)] text-white border-[var(--accent-primary)]'
+                    : 'bg-white text-[var(--text-secondary)] border-[var(--border-warm)] hover:border-[var(--accent-tertiary)]'
                 }`}
               >
                 <span>{stateKey}</span>
                 {count > 0 && (
-                  <span className="px-1.5 py-0.2 rounded-full bg-[#F5F0E8] text-[#6F4E37] text-[10px] font-bold">
+                  <span className="px-1.5 py-0.5 rounded-full bg-[var(--bg-secondary)] text-[var(--accent-primary)] text-[10px] font-bold font-mono">
                     {count}
                   </span>
                 )}
@@ -428,30 +458,30 @@ export default function GISMap({ selectedCountry, onSelectProject, onOpenCopilot
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
         
         {/* Left: Interactive Map Container (7 Cols) */}
-        <div className="lg:col-span-7 card-coffee p-2 relative h-[620px] overflow-hidden flex flex-col">
+        <div className="lg:col-span-7 bg-white rounded-xl border border-[var(--border-warm)] p-2 relative h-[620px] overflow-hidden flex flex-col shadow-sm">
           <div ref={mapContainerRef} className="w-full h-full rounded-lg z-0" />
 
           {/* Map Floating Banner */}
-          <div className="absolute top-4 left-4 z-10 card-coffee p-2.5 bg-[#FFFFFF]/90 backdrop-blur-sm text-xs border-[#E8E0D5] shadow-md flex items-center gap-2">
-            <span className="w-2.5 h-2.5 rounded-full bg-[#E11D48] animate-ping" />
-            <span className="text-[#2C1810] font-bold">Live Demand Pins Active</span>
-            <span className="text-[#8C7A70]">• {liveRequests.length} Total Verified Signals</span>
+          <div className="absolute top-4 left-4 z-10 p-2.5 bg-white/95 backdrop-blur-sm rounded-lg text-xs border border-[var(--border-warm)] shadow-md flex items-center gap-2">
+            <span className="w-2.5 h-2.5 rounded-full bg-[var(--status-danger)] animate-pulse" />
+            <span className="text-[var(--text-primary)] font-bold">Live Demand Pins Active</span>
+            <span className="text-[var(--text-tertiary)]">• {liveRequests.length} Verified Signals</span>
           </div>
 
           {/* Persistent Light Legend */}
-          <div className="absolute bottom-4 left-4 z-10 card-coffee p-3 bg-[#FFFFFF]/95 text-xs space-y-1.5 border-[#E8E0D5] shadow-md">
-            <div className="text-label text-[10px]">Map Indicators</div>
+          <div className="absolute bottom-4 left-4 z-10 p-3 bg-white/95 rounded-lg text-xs space-y-1.5 border border-[var(--border-warm)] shadow-md">
+            <div className="text-[10px] font-bold text-[var(--text-tertiary)] uppercase tracking-wider">Map Indicators</div>
             <div className="flex items-center gap-2">
-              <span className="w-3.5 h-3.5 rounded-full bg-[#E11D48] flex items-center justify-center text-[8px] text-white font-bold">!</span>
-              <span className="text-[#2C1810] font-semibold">Karnataka / Critical Cluster</span>
+              <span className="w-3.5 h-3.5 rounded-full bg-[var(--status-danger)] flex items-center justify-center text-[8px] text-white font-bold">!</span>
+              <span className="text-[var(--text-primary)] font-medium">Karnataka / Critical Hotspot</span>
             </div>
             <div className="flex items-center gap-2">
-              <span className="w-3 h-3 rounded-full bg-[#B54A4A]" />
-              <span className="text-[#5C4A42]">High Priority Hotspot</span>
+              <span className="w-3 h-3 rounded-full bg-[var(--status-warning)]" />
+              <span className="text-[var(--text-secondary)] font-medium">High Priority Cluster</span>
             </div>
             <div className="flex items-center gap-2">
-              <span className="w-2.5 h-2.5 rounded-full bg-[#DC2626]" />
-              <span className="text-[#5C4A42]">Individual Citizen Complaint Pin</span>
+              <span className="w-2.5 h-2.5 rounded-full bg-[var(--status-success)]" />
+              <span className="text-[var(--text-secondary)] font-medium">Verified Citizen Complaint</span>
             </div>
           </div>
         </div>
@@ -459,35 +489,35 @@ export default function GISMap({ selectedCountry, onSelectProject, onOpenCopilot
         {/* Right Detail Panel: Citizen Complaints & Cluster Intelligence (5 Cols) */}
         <div className="lg:col-span-5 space-y-4">
           {selectedHotspot ? (
-            <div className="card-coffee p-5 space-y-4">
+            <div className="bg-white rounded-xl border border-[var(--border-warm)] p-5 space-y-4 shadow-sm">
               
               {/* Header: Title + Subtle Badge */}
-              <div className="space-y-1.5 pb-3 border-b border-[#F0EBE3]">
+              <div className="space-y-1.5 pb-3 border-b border-[var(--border-divider)]">
                 <div className="flex items-center justify-between">
-                  <span className="font-mono text-[11px] font-bold text-[#6F4E37] bg-[#F5F0E8] px-2 py-0.5 rounded border border-[#E8E0D5]">
+                  <span className="font-mono text-[11px] font-bold text-[var(--accent-primary)] bg-[var(--bg-secondary)] px-2 py-0.5 rounded border border-[var(--border-warm)]">
                     {selectedHotspot.country_code} · {selectedHotspot.id}
                   </span>
-                  <span className={`badge-pill ${selectedHotspot.priority_level.includes('Critical') || (selectedHotspot.state_province || '').toLowerCase().includes('karnataka') ? 'badge-pill-danger' : 'badge-pill-warning'}`}>
+                  <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${selectedHotspot.priority_level.includes('Critical') || (selectedHotspot.state_province || '').toLowerCase().includes('karnataka') ? 'bg-[var(--status-danger-bg)] text-[var(--status-danger)] border border-[var(--status-danger-border)]' : 'bg-[var(--status-warning-bg)] text-[var(--status-warning)] border border-[var(--status-warning-border)]'}`}>
                     {selectedHotspot.priority_level}
                   </span>
                 </div>
-                <h3 className="text-base font-bold text-[#2C1810] pt-0.5 flex items-center gap-2">
-                  <MapPin className="w-4 h-4 text-[#E11D48]" />
+                <h3 className="text-base font-bold text-[var(--text-primary)] pt-0.5 flex items-center gap-2">
+                  <MapPin className="w-4 h-4 text-[var(--accent-primary)]" />
                   {selectedHotspot.cluster_name}
                 </h3>
-                <p className="text-xs text-[#5C4A42]">
-                  {selectedHotspot.state_province} Administrative Region • <strong>{regionalComplaints.length} Filed Citizen Complaints</strong>
+                <p className="text-xs text-[var(--text-secondary)]">
+                  {selectedHotspot.state_province} Administrative Region • <strong>{regionalComplaints.length} Filed Citizen Reports</strong>
                 </p>
               </div>
 
               {/* Tab Switcher: Filed Complaints vs Hotspot Metrics */}
-              <div className="flex items-center p-1 bg-[#F5F0E8] rounded-xl border border-[#E8E0D5]">
+              <div className="flex items-center p-1 bg-[var(--bg-secondary)] rounded-lg border border-[var(--border-warm)]">
                 <button
                   onClick={() => setActiveRightTab('complaints')}
-                  className={`flex-1 py-1.5 text-xs font-bold rounded-lg transition-colors flex items-center justify-center gap-1.5 ${
+                  className={`flex-1 py-1.5 text-xs font-bold rounded-md transition-colors flex items-center justify-center gap-1.5 cursor-pointer ${
                     activeRightTab === 'complaints'
-                      ? 'bg-[#FFFFFF] text-[#2C1810] shadow-sm'
-                      : 'text-[#5C4A42] hover:text-[#2C1810]'
+                      ? 'bg-white text-[var(--text-primary)] shadow-sm'
+                      : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
                   }`}
                 >
                   <MessageSquare className="w-3.5 h-3.5" />
@@ -496,10 +526,10 @@ export default function GISMap({ selectedCountry, onSelectProject, onOpenCopilot
 
                 <button
                   onClick={() => setActiveRightTab('metrics')}
-                  className={`flex-1 py-1.5 text-xs font-bold rounded-lg transition-colors flex items-center justify-center gap-1.5 ${
+                  className={`flex-1 py-1.5 text-xs font-bold rounded-md transition-colors flex items-center justify-center gap-1.5 cursor-pointer ${
                     activeRightTab === 'metrics'
-                      ? 'bg-[#FFFFFF] text-[#2C1810] shadow-sm'
-                      : 'text-[#5C4A42] hover:text-[#2C1810]'
+                      ? 'bg-white text-[var(--text-primary)] shadow-sm'
+                      : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
                   }`}
                 >
                   <Activity className="w-3.5 h-3.5" />
@@ -510,25 +540,23 @@ export default function GISMap({ selectedCountry, onSelectProject, onOpenCopilot
               {/* TAB 1: FILED CITIZEN COMPLAINTS LIST */}
               {activeRightTab === 'complaints' && (
                 <div className="space-y-3">
-                  {/* Search / Filter in complaints */}
                   <div className="flex items-center gap-2">
                     <input
                       type="text"
                       value={complaintSearch}
                       onChange={(e) => setComplaintSearch(e.target.value)}
-                      placeholder={`Search ${selectedHotspot.state_province} complaints...`}
-                      className="flex-1 px-3 py-1.5 text-xs rounded-lg border border-[#E8E0D5] bg-[#FAF6F0] focus:ring-1 focus:ring-[#D4A373] outline-none"
+                      placeholder={`Search ${selectedHotspot.state_province} reports...`}
+                      className="flex-1 px-3 py-1.5 text-xs rounded-lg border border-[var(--border-warm)] bg-[var(--bg-primary)] focus:ring-1 focus:ring-[var(--accent-primary)] outline-none text-[var(--text-primary)]"
                     />
-                    <span className="text-[11px] text-[#8C7A70] shrink-0 font-medium">
+                    <span className="text-[11px] text-[var(--text-tertiary)] shrink-0 font-medium">
                       Showing {displayedComplaints.length}
                     </span>
                   </div>
 
-                  {/* Complaints Scroll Area */}
                   <div className="space-y-3 max-h-[380px] overflow-y-auto pr-1">
                     {displayedComplaints.length === 0 ? (
-                      <div className="p-6 text-center text-xs text-[#8C7A70] bg-[#FAF6F0] rounded-xl border border-dashed border-[#E8E0D5]">
-                        No complaints match filter in {selectedHotspot.state_province}.
+                      <div className="p-6 text-center text-xs text-[var(--text-tertiary)] bg-[var(--bg-primary)] rounded-xl border border-dashed border-[var(--border-warm)]">
+                        No complaints match current filters in {selectedHotspot.state_province}.
                       </div>
                     ) : (
                       displayedComplaints.map((comp) => {
@@ -539,46 +567,43 @@ export default function GISMap({ selectedCountry, onSelectProject, onOpenCopilot
                             onClick={() => handleFocusComplaintPin(comp)}
                             className={`p-3.5 rounded-xl border transition cursor-pointer space-y-2 relative ${
                               isSelected
-                                ? 'bg-[#FFFBEB] border-[#D97706] shadow-md ring-2 ring-[#F59E0B]/30'
-                                : 'bg-[#FFFFFF] border-[#E8E0D5] hover:border-[#D4A373] hover:shadow-sm'
+                                ? 'bg-amber-50/70 border-amber-400 ring-2 ring-amber-400/20 shadow-sm'
+                                : 'bg-white border-[var(--border-warm)] hover:border-[var(--accent-tertiary)] hover:shadow-xs'
                             }`}
                           >
-                            {/* Card Header: Category + Urgency + Channel */}
                             <div className="flex items-center justify-between text-xs">
-                              <span className="font-bold text-[#2C1810] flex items-center gap-1.5">
-                                <MessageSquare className="w-3.5 h-3.5 text-[#6F4E37]" />
+                              <span className="font-bold text-[var(--text-primary)] flex items-center gap-1.5">
+                                <MessageSquare className="w-3.5 h-3.5 text-[var(--accent-primary)]" />
                                 {comp.category}
                               </span>
 
                               <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
                                 comp.urgency === 'Critical'
-                                  ? 'bg-[#FEE2E2] text-[#991B1B]'
-                                  : 'bg-[#FEF3C7] text-[#92400E]'
+                                  ? 'bg-[var(--status-danger-bg)] text-[var(--status-danger)]'
+                                  : 'bg-[var(--status-warning-bg)] text-[var(--status-warning)]'
                               }`}>
                                 {comp.urgency} Urgency
                               </span>
                             </div>
 
-                            {/* Complaint Content */}
                             <div className="space-y-1">
-                              <p className="text-xs text-[#2C1810] font-medium leading-relaxed">
+                              <p className="text-xs text-[var(--text-primary)] font-medium leading-relaxed">
                                 "{comp.translated_text || comp.original_text}"
                               </p>
                               {comp.original_text && comp.translated_text && comp.original_text !== comp.translated_text && (
-                                <p className="text-[11px] text-[#8C7A70] italic">
+                                <p className="text-[11px] text-[var(--text-tertiary)] italic">
                                   Original ({comp.language_name || 'Native'}): "{comp.original_text}"
                                 </p>
                               )}
                             </div>
 
-                            {/* Card Footer: Submitter, Location, Upvotes, Focus Action */}
-                            <div className="pt-2 border-t border-[#F0EBE3] flex items-center justify-between text-[11px] text-[#5C4A42]">
+                            <div className="pt-2 border-t border-[var(--border-divider)] flex items-center justify-between text-[11px] text-[var(--text-secondary)]">
                               <div className="flex items-center gap-2">
-                                <span className="font-semibold text-[#2C1810]">
+                                <span className="font-semibold text-[var(--text-primary)]">
                                   {comp.submitter_name || 'Verified Citizen'}
                                 </span>
                                 <span>•</span>
-                                <span className="text-[#8C7A70]">
+                                <span className="text-[var(--text-tertiary)]">
                                   {comp.location_name || comp.state_province}
                                 </span>
                               </div>
@@ -586,7 +611,7 @@ export default function GISMap({ selectedCountry, onSelectProject, onOpenCopilot
                               <div className="flex items-center gap-3">
                                 <button
                                   onClick={(e) => handleUpvoteComplaint(comp.id, e)}
-                                  className="flex items-center gap-1 text-[#6F4E37] hover:text-[#2C1810] font-semibold"
+                                  className="flex items-center gap-1 text-[var(--accent-primary)] hover:text-[var(--accent-primary-dark)] font-semibold cursor-pointer"
                                 >
                                   <ThumbsUp className="w-3 h-3" />
                                   <span>{comp.upvotes || 1}</span>
@@ -597,9 +622,9 @@ export default function GISMap({ selectedCountry, onSelectProject, onOpenCopilot
                                     e.stopPropagation();
                                     handleFocusComplaintPin(comp);
                                   }}
-                                  className="text-[10px] font-bold text-[#D4A373] hover:text-[#6F4E37] flex items-center gap-0.5"
+                                  className="text-[10px] font-bold text-[var(--accent-tertiary)] hover:text-[var(--accent-primary)] flex items-center gap-0.5 cursor-pointer"
                                 >
-                                  <span>Pin</span>
+                                  <span>Focus</span>
                                   <MapPin className="w-3 h-3" />
                                 </button>
                               </div>
@@ -616,39 +641,37 @@ export default function GISMap({ selectedCountry, onSelectProject, onOpenCopilot
               {/* TAB 2: METRICS & SROI */}
               {activeRightTab === 'metrics' && (
                 <div className="space-y-4">
-                  {/* 2x2 Grid of Metric Cards */}
                   <div className="grid grid-cols-2 gap-2.5 text-xs">
-                    <div className="p-3 bg-[#FDFBF7] rounded-lg border border-[#E8E0D5] space-y-0.5">
-                      <div className="text-label text-[10px]">Citizen Signals</div>
-                      <div className="text-xl font-bold font-mono text-[#2C1810]">{selectedHotspot.request_count}</div>
-                      <div className="text-[10px] text-[#9C8C84]">Verified reports</div>
+                    <div className="p-3 bg-[var(--bg-primary)] rounded-lg border border-[var(--border-warm)] space-y-0.5">
+                      <div className="text-[10px] font-semibold text-[var(--text-tertiary)] uppercase">Citizen Signals</div>
+                      <div className="text-xl font-bold font-mono text-[var(--text-primary)]">{selectedHotspot.request_count}</div>
+                      <div className="text-[10px] text-[var(--text-tertiary)]">Verified reports</div>
                     </div>
 
-                    <div className="p-3 bg-[#FDFBF7] rounded-lg border border-[#E8E0D5] space-y-0.5">
-                      <div className="text-label text-[10px]">Deficit Score</div>
-                      <div className="text-xl font-bold font-mono text-[#C78D3F]">{Math.round(selectedHotspot.infrastructure_deficit_index * 100)}%</div>
-                      <div className="text-[10px] text-[#9C8C84]">National baseline</div>
+                    <div className="p-3 bg-[var(--bg-primary)] rounded-lg border border-[var(--border-warm)] space-y-0.5">
+                      <div className="text-[10px] font-semibold text-[var(--text-tertiary)] uppercase">Deficit Score</div>
+                      <div className="text-xl font-bold font-mono text-[var(--status-warning)]">{Math.round((selectedHotspot.infrastructure_deficit_index || 0.7) * 100)}%</div>
+                      <div className="text-[10px] text-[var(--text-tertiary)]">National baseline gap</div>
                     </div>
 
-                    <div className="p-3 bg-[#FDFBF7] rounded-lg border border-[#E8E0D5] space-y-0.5">
-                      <div className="text-label text-[10px]">People Impacted</div>
-                      <div className="text-xl font-bold font-mono text-[#2C1810]">{selectedHotspot.estimated_affected_population.toLocaleString()}</div>
-                      <div className="text-[10px] text-[#9C8C84]">District radius</div>
+                    <div className="p-3 bg-[var(--bg-primary)] rounded-lg border border-[var(--border-warm)] space-y-0.5">
+                      <div className="text-[10px] font-semibold text-[var(--text-tertiary)] uppercase">People Impacted</div>
+                      <div className="text-xl font-bold font-mono text-[var(--text-primary)]">{(selectedHotspot.estimated_affected_population || 0).toLocaleString()}</div>
+                      <div className="text-[10px] text-[var(--text-tertiary)]">District radius</div>
                     </div>
 
-                    <div className="p-3 bg-[#FDFBF7] rounded-lg border border-[#E8E0D5] space-y-0.5">
-                      <div className="text-label text-[10px]">Urgency Index</div>
-                      <div className="text-xl font-bold font-mono text-[#B54A4A]">{selectedHotspot.avg_urgency_score}</div>
-                      <div className="text-[10px] text-[#9C8C84]">0.0 to 1.0 scale</div>
+                    <div className="p-3 bg-[var(--bg-primary)] rounded-lg border border-[var(--border-warm)] space-y-0.5">
+                      <div className="text-[10px] font-semibold text-[var(--text-tertiary)] uppercase">Urgency Score</div>
+                      <div className="text-xl font-bold font-mono text-[var(--status-danger)]">{selectedHotspot.avg_urgency_score}</div>
+                      <div className="text-[10px] text-[var(--text-tertiary)]">Scale: 0.0 - 1.0</div>
                     </div>
                   </div>
 
-                  {/* WHY THIS MATTERS */}
                   <div className="space-y-1.5">
-                    <div className="text-label text-[10px]">WHY THIS MATTERS (GROUND REALITY)</div>
+                    <div className="text-[10px] font-bold text-[var(--text-tertiary)] uppercase tracking-wider">Ground Reality Evidence</div>
                     <div className="space-y-2">
                       {selectedHotspot.sample_requests?.slice(0, 2).map((text, idx) => (
-                        <div key={idx} className="p-2.5 bg-[#FDFBF7] border-l-[3px] border-[#6F4E37] text-xs text-[#5C4A42] leading-relaxed italic rounded-r-lg">
+                        <div key={idx} className="p-2.5 bg-[var(--bg-primary)] border-l-[3px] border-[var(--accent-primary)] text-xs text-[var(--text-secondary)] leading-relaxed italic rounded-r-lg">
                           "{text}"
                         </div>
                       ))}
@@ -658,30 +681,30 @@ export default function GISMap({ selectedCountry, onSelectProject, onOpenCopilot
               )}
 
               {/* Actions Bottom Bar */}
-              <div className="pt-2 border-t border-[#F0EBE3] space-y-2">
+              <div className="pt-3 border-t border-[var(--border-divider)] space-y-2">
                 <button
-                  onClick={() => onSelectProject(selectedHotspot)}
-                  className="btn-primary w-full justify-center text-xs py-2.5"
+                  onClick={() => onSelectProject && onSelectProject(selectedHotspot)}
+                  className="w-full py-2.5 px-4 rounded-lg bg-[var(--accent-primary)] hover:bg-[var(--accent-primary-dark)] text-white text-xs font-semibold shadow-sm transition flex items-center justify-center gap-1.5 cursor-pointer"
                 >
                   <span>Prioritize Project & SROI for {selectedHotspot.state_province}</span>
                   <ChevronRight className="w-4 h-4" />
                 </button>
 
                 <button
-                  onClick={() => onOpenCopilot('brief', selectedHotspot)}
-                  className="btn-secondary w-full justify-center text-xs py-2"
+                  onClick={() => onOpenCopilot && onOpenCopilot('brief', selectedHotspot)}
+                  className="w-full py-2 px-4 rounded-lg bg-white border border-[var(--border-warm)] hover:bg-[var(--bg-secondary)] text-[var(--text-primary)] text-xs font-semibold transition flex items-center justify-center gap-1.5 cursor-pointer"
                 >
-                  <FileText className="w-4 h-4" />
+                  <FileText className="w-4 h-4 text-[var(--accent-primary)]" />
                   <span>Draft Policy Brief for {selectedHotspot.state_province}</span>
                 </button>
               </div>
 
             </div>
           ) : (
-            <div className="card-coffee p-8 text-center text-[#9C8C84] text-xs space-y-2">
-              <MapPin className="w-8 h-8 text-[#D4A373] mx-auto opacity-60" />
-              <p className="font-bold text-[#2C1810]">No Hotspot Selected</p>
-              <p>Click on any hotspot dot (e.g. Karnataka) or individual complaint marker on the map to inspect filed grievances.</p>
+            <div className="bg-white rounded-xl border border-[var(--border-warm)] p-8 text-center text-[var(--text-tertiary)] text-xs space-y-2 shadow-sm">
+              <MapPin className="w-8 h-8 text-[var(--accent-tertiary)] mx-auto opacity-60" />
+              <p className="font-bold text-[var(--text-primary)]">No Hotspot Selected</p>
+              <p>Click on any hotspot cluster or complaint marker on the map to inspect filed grievances.</p>
             </div>
           )}
         </div>
@@ -691,4 +714,3 @@ export default function GISMap({ selectedCountry, onSelectProject, onOpenCopilot
     </div>
   );
 }
-

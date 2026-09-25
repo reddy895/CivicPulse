@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { ArrowLeft, MapPin, Clock, Image, Sparkles, CheckCircle2, AlertCircle, Loader2, ChevronLeft, ChevronRight, X, ZoomIn } from 'lucide-react';
+import { ArrowLeft, MapPin, Clock, Image, Sparkles, CheckCircle2, AlertCircle, Loader2, ChevronLeft, ChevronRight, X, ZoomIn, Search, Check } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { getRequests } from '../../services/api';
 import { StatusBadge } from '../../components/ui/StatusBadge';
@@ -55,7 +55,7 @@ export default function ComplaintDetailPage() {
   if (loading) return <div className="container-md py-16 flex justify-center gap-3 text-[var(--text-tertiary)]"><Loader2 className="w-5 h-5 animate-spin"/> Loading...</div>;
   if (!complaint) return (
     <div className="container-md py-16 text-center">
-      <div className="text-5xl mb-4">🔍</div>
+      <Search className="w-12 h-12 text-[var(--accent-primary)] mx-auto mb-4 opacity-70" />
       <h2 className="text-xl font-bold text-[var(--text-primary)]">Report not found</h2>
       <Link to="/dashboard" className="btn-primary mt-6 inline-flex"><ArrowLeft className="w-4 h-4"/> Back to Dashboard</Link>
     </div>
@@ -95,7 +95,7 @@ export default function ComplaintDetailPage() {
               <React.Fragment key={s}>
                 <div className="flex flex-col items-center">
                   <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${i < cur ? 'bg-[var(--status-success)] text-white' : i === cur ? 'bg-[var(--accent-primary)] text-white ring-2 ring-[var(--accent-primary)]/30' : 'bg-[var(--bg-secondary)] text-[var(--text-tertiary)] border border-[var(--border-warm)]'}`}>
-                    {i < cur ? '✓' : i + 1}
+                    {i < cur ? <Check className="w-3.5 h-3.5 text-white" /> : i + 1}
                   </div>
                   <span className="text-[9px] font-medium text-[var(--text-tertiary)] mt-1 hidden sm:block whitespace-nowrap">{s}</span>
                 </div>

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { MapPin, Clock, Image, ChevronRight, FileText, Loader2, RefreshCw } from 'lucide-react';
+import { MapPin, Clock, Image, ChevronRight, FileText, Loader2, RefreshCw, Check, ClipboardList } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../context/AuthContext';
 import { getRequests, upvoteRequest } from '../services/api';
@@ -25,7 +25,7 @@ function ComplaintTimeline({ status }) {
               i === active ? 'bg-[var(--accent-primary)] text-white ring-2 ring-[var(--accent-primary)]/30' :
               'bg-[var(--bg-secondary)] text-[var(--text-tertiary)] border border-[var(--border-warm)]'
             }`}>
-              {i < active ? '✓' : i + 1}
+              {i < active ? <Check className="w-3 h-3 text-white" /> : i + 1}
             </div>
             <span className="text-[8px] font-medium text-[var(--text-tertiary)] capitalize hidden sm:block whitespace-nowrap">
               {t(`status.${s}`)}
@@ -65,7 +65,7 @@ export default function MyReportsPage({ onNavigate }) {
 
   if (reports.length === 0) return (
     <div className="container-md py-20 text-center">
-      <div className="text-5xl mb-4">📋</div>
+      <ClipboardList className="w-12 h-12 text-[var(--accent-primary)] mx-auto mb-4 opacity-70" />
       <h2 className="text-xl font-bold text-[var(--text-primary)]">{t('myReports.no_reports')}</h2>
       <p className="text-[var(--text-secondary)] mt-2 max-w-sm mx-auto">{t('myReports.no_reports_desc')}</p>
       <button onClick={() => onNavigate('citizen')} className="btn-primary mt-6">

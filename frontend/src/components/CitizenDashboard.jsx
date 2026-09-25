@@ -271,7 +271,7 @@ export default function CitizenDashboard({ selectedCountry, onGoToMap }) {
                 : 'bg-white text-[#9F1239] border border-[#FECDD3] hover:bg-[#FFE4E6]'
             }`}
           >
-            <span>🚨 Karnataka (Bengaluru)</span>
+            <span>Karnataka (Bengaluru)</span>
           </button>
 
           {['Uttar Pradesh', 'Maharashtra', 'Bihar', 'Rajasthan', 'Kerala'].map((st) => (
@@ -403,7 +403,7 @@ export default function CitizenDashboard({ selectedCountry, onGoToMap }) {
                   className="btn-primary w-full justify-center text-xs py-2.5 bg-[#E11D48] hover:bg-[#BE123C] text-white flex items-center gap-2 shadow-sm cursor-pointer"
                 >
                   <MapPin className="w-4 h-4" />
-                  <span>View Complaint on GIS Map 🗺️</span>
+                  <span>View Complaint on GIS Map</span>
                 </button>
               </div>
             ) : (

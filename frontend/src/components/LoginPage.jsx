@@ -317,11 +317,11 @@ export default function LoginPage() {
                         onChange={(e) => setCountryCode(e.target.value)}
                         className="w-full px-3 py-2.5 rounded-xl border border-[#E8E0D5] bg-[#FAF6F0]/50 text-xs font-medium text-[#2C1810] focus:ring-2 focus:ring-[#D4A373] outline-none"
                       >
-                        <option value="IND">🇮🇳 India</option>
-                        <option value="BRA">🇧🇷 Brazil</option>
-                        <option value="ZAF">🇿🇦 South Africa</option>
-                        <option value="CHN">🇨🇳 China</option>
-                        <option value="RUS">🇷🇺 Russia</option>
+                        <option value="IND">India (IND)</option>
+                        <option value="BRA">Brazil (BRA)</option>
+                        <option value="ZAF">South Africa (ZAF)</option>
+                        <option value="CHN">China (CHN)</option>
+                        <option value="RUS">Russia (RUS)</option>
                       </select>
                     </div>
 
@@ -375,21 +375,21 @@ export default function LoginPage() {
                         onClick={() => { setEmail('citizen.india@civicpulse.org'); setPassword('citizen123'); }}
                         className="py-1 px-2.5 rounded-lg bg-[#FAF6F0] border border-[#E8E0D5] text-[11px] font-medium text-[#5C4A42] hover:bg-[#E8E0D5]/50"
                       >
-                        🇮🇳 Rajesh (India)
+                        Rajesh (India)
                       </button>
                       <button
                         type="button"
                         onClick={() => { setEmail('citizen.brazil@civicpulse.org'); setPassword('citizen123'); }}
                         className="py-1 px-2.5 rounded-lg bg-[#FAF6F0] border border-[#E8E0D5] text-[11px] font-medium text-[#5C4A42] hover:bg-[#E8E0D5]/50"
                       >
-                        🇧🇷 Maria (Brazil)
+                        Maria (Brazil)
                       </button>
                       <button
                         type="button"
                         onClick={() => { setEmail('citizen.safrica@civicpulse.org'); setPassword('citizen123'); }}
                         className="py-1 px-2.5 rounded-lg bg-[#FAF6F0] border border-[#E8E0D5] text-[11px] font-medium text-[#5C4A42] hover:bg-[#E8E0D5]/50"
                       >
-                        🇿🇦 Sipho (South Africa)
+                        Sipho (South Africa)
                       </button>
                     </>
                   ) : (
@@ -399,21 +399,21 @@ export default function LoginPage() {
                         onClick={() => { setEmail('director.infra@gov.in'); setPassword('admin123'); }}
                         className="py-1 px-2.5 rounded-lg bg-[#FAF6F0] border border-[#E8E0D5] text-[11px] font-medium text-[#5C4A42] hover:bg-[#E8E0D5]/50"
                       >
-                        🏛️ Dr. Rao (India Director)
+                        Dr. Rao (India Director)
                       </button>
                       <button
                         type="button"
                         onClick={() => { setEmail('minister.planning@gov.br'); setPassword('admin123'); }}
                         className="py-1 px-2.5 rounded-lg bg-[#FAF6F0] border border-[#E8E0D5] text-[11px] font-medium text-[#5C4A42] hover:bg-[#E8E0D5]/50"
                       >
-                        🏛️ Santos (Brazil Minister)
+                        Santos (Brazil Minister)
                       </button>
                       <button
                         type="button"
                         onClick={() => { setEmail('admin.brics@civicpulse.org'); setPassword('admin123'); }}
                         className="py-1 px-2.5 rounded-lg bg-[#FAF6F0] border border-[#E8E0D5] text-[11px] font-medium text-[#5C4A42] hover:bg-[#E8E0D5]/50"
                       >
-                        🌐 BRICS Global Admin
+                        BRICS Global Admin
                       </button>
                     </>
                   )}

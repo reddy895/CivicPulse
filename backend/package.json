@@ -4,8 +4,8 @@
   "private": true,
   "description": "CivicPulse FastAPI Backend Service",
   "scripts": {
-    "dev": "bash -c 'if [ -f .venv/bin/uvicorn ]; then .venv/bin/uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload; elif command -v uvicorn >/dev/null 2>&1; then uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload; else python3 -m uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload; fi'",
-    "start": "bash -c 'if [ -f .venv/bin/uvicorn ]; then .venv/bin/uvicorn app.main:app --host 0.0.0.0 --port 8000; elif command -v uvicorn >/dev/null 2>&1; then uvicorn app.main:app --host 0.0.0.0 --port 8000; else python3 -m uvicorn app.main:app --host 0.0.0.0 --port 8000; fi'",
-    "test": "pytest tests"
+    "dev": "bash -c 'if [ -f .venv/bin/python ]; then exec .venv/bin/python -m uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload; elif [ -f .venv/bin/uvicorn ]; then exec .venv/bin/uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload; elif command -v python3 >/dev/null 2>&1; then exec python3 run.py; else exec python run.py; fi' || python3 run.py || python run.py",
+    "start": "bash -c 'if [ -f .venv/bin/python ]; then exec .venv/bin/python -m uvicorn app.main:app --host 0.0.0.0 --port 8000; elif [ -f .venv/bin/uvicorn ]; then exec .venv/bin/uvicorn app.main:app --host 0.0.0.0 --port 8000; elif command -v python3 >/dev/null 2>&1; then exec python3 -m uvicorn app.main:app --host 0.0.0.0 --port 8000; else exec python -m uvicorn app.main:app --host 0.0.0.0 --port 8000; fi' || python3 -m uvicorn app.main:app --host 0.0.0.0 --port 8000 || python -m uvicorn app.main:app --host 0.0.0.0 --port 8000",
+    "test": "bash -c 'if [ -f .venv/bin/pytest ]; then .venv/bin/pytest tests; elif command -v pytest >/dev/null 2>&1; then pytest tests; else python3 -m pytest tests; fi'"
   }
 }

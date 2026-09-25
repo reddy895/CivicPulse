@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
-import { Globe2, ChevronDown, Check, Menu, X } from 'lucide-react';
+import { Globe2, ChevronDown, Check, Menu, X, Building2 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import i18n, { SUPPORTED_LANGUAGES } from '../i18n/index.js';
 import logoImg from '../assets/logo.png';
@@ -130,7 +130,8 @@ export default function PublicLayout() {
                   : 'border-white/30 text-white/90 hover:border-white/70 hover:bg-white/10'
               }`}
             >
-              🏛️ GOVERNMENT DEMO
+              <Building2 className="w-3.5 h-3.5" />
+              <span>GOVERNMENT PORTAL</span>
             </Link>
 
             {/* Mobile toggle */}
@@ -153,8 +154,9 @@ export default function PublicLayout() {
                   {link.label}
                 </a>
               ))}
-              <Link to="/gov-demo/login" className="block px-4 py-3 rounded-[var(--radius-md)] text-sm font-bold text-[var(--accent-primary)] border border-[var(--accent-primary)]/30 text-center mt-2">
-                🏛️ GOVERNMENT DEMO
+              <Link to="/gov-demo/login" className="flex items-center justify-center gap-2 px-4 py-3 rounded-[var(--radius-md)] text-sm font-bold text-[var(--accent-primary)] border border-[var(--accent-primary)]/30 text-center mt-2">
+                <Building2 className="w-4 h-4" />
+                <span>GOVERNMENT PORTAL</span>
               </Link>
             </nav>
           </div>

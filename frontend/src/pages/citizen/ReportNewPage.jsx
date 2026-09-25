@@ -1,6 +1,10 @@
 import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FileText, Image, MapPin, CheckCircle2, ArrowRight, ArrowLeft, X, Plus, ZoomIn, ChevronLeft, ChevronRight, AlertCircle, Loader2, Sparkles, CheckCircle, Upload, Camera } from 'lucide-react';
+import { 
+  FileText, Image, MapPin, CheckCircle2, ArrowRight, ArrowLeft, X, Plus, 
+  ZoomIn, ChevronLeft, ChevronRight, AlertCircle, Loader2, Sparkles, CheckCircle, 
+  Upload, Camera, Car, Droplets, Zap, HeartPulse, GraduationCap, Radio, Waves 
+} from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../context/AuthContext';
 import { submitCitizenRequest } from '../../services/api';
@@ -9,13 +13,13 @@ import { toast } from '../../components/ui/Toast';
 const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api';
 
 const CATEGORIES = [
-  { id: 'Roads & Public Transport', icon: '🛣️', key: 'roads', label: 'Roads & Mobility', desc: 'Potholes, broken roads, traffic', color: '#D4A373' },
-  { id: 'Water & Sanitation', icon: '💧', key: 'water', label: 'Water & Sanitation', desc: 'Water supply, drainage, sewage', color: '#5A7D9A' },
-  { id: 'Clean Energy & Grid', icon: '⚡', key: 'electricity', label: 'Electricity & Energy', desc: 'Power outages, faulty lines, lighting', color: '#C78D3F' },
-  { id: 'Healthcare & Clinics', icon: '🏥', key: 'healthcare', label: 'Healthcare', desc: 'Clinics, hospitals, medical access', color: '#B54A4A' },
-  { id: 'Education & Schools', icon: '🎓', key: 'education', label: 'Education', desc: 'Schools, colleges, facilities', color: '#5A8F6E' },
-  { id: 'Digital Public Infrastructure', icon: '📡', key: 'digital', label: 'Digital Infrastructure', desc: 'Internet, connectivity', color: '#7B68EE' },
-  { id: 'Flood & Climate Resilience', icon: '🌊', key: 'flood', label: 'Flood & Climate', desc: 'Flooding, drainage, climate hazards', color: '#2C7FB8' },
+  { id: 'Roads & Public Transport', icon: Car, key: 'roads', label: 'Roads & Mobility', desc: 'Potholes, broken roads, traffic', color: '#D4A373' },
+  { id: 'Water & Sanitation', icon: Droplets, key: 'water', label: 'Water & Sanitation', desc: 'Water supply, drainage, sewage', color: '#5A7D9A' },
+  { id: 'Clean Energy & Grid', icon: Zap, key: 'electricity', label: 'Electricity & Energy', desc: 'Power outages, faulty lines, lighting', color: '#C78D3F' },
+  { id: 'Healthcare & Clinics', icon: HeartPulse, key: 'healthcare', label: 'Healthcare', desc: 'Clinics, hospitals, medical access', color: '#B54A4A' },
+  { id: 'Education & Schools', icon: GraduationCap, key: 'education', label: 'Education', desc: 'Schools, colleges, facilities', color: '#5A8F6E' },
+  { id: 'Digital Public Infrastructure', icon: Radio, key: 'digital', label: 'Digital Infrastructure', desc: 'Internet, connectivity', color: '#7B68EE' },
+  { id: 'Flood & Climate Resilience', icon: Waves, key: 'flood', label: 'Flood & Climate', desc: 'Flooding, drainage, climate hazards', color: '#2C7FB8' },
 ];
 
 const STEPS = ['Category', 'Description', 'Evidence', 'Location', 'Review'];
@@ -188,13 +192,22 @@ export default function ReportNewPage() {
         <div className="space-y-6 page-enter">
           <div><h2 className="text-title text-[var(--text-primary)]">Choose a Category</h2><p className="text-sm text-[var(--text-secondary)] mt-1">Select the type of infrastructure issue</p></div>
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3" role="radiogroup">
-            {CATEGORIES.map(cat => (
-              <button key={cat.id} role="radio" aria-checked={category===cat.id} onClick={() => setCategory(cat.id)}
-                className={`category-card flex flex-col items-center gap-3 ${category===cat.id?'selected':''}`}>
-                <div className="text-4xl">{cat.icon}</div>
-                <div><div className={`text-sm font-bold leading-tight ${category===cat.id?'text-white':'text-[var(--text-primary)]'}`}>{cat.label}</div><div className={`text-[10px] mt-1 leading-snug ${category===cat.id?'text-white/70':'text-[var(--text-tertiary)]'}`}>{cat.desc}</div></div>
-              </button>
-            ))}
+            {CATEGORIES.map(cat => {
+              const Icon = cat.icon;
+              const isSel = category === cat.id;
+              return (
+                <button key={cat.id} role="radio" aria-checked={isSel} onClick={() => setCategory(cat.id)}
+                  className={`category-card flex flex-col items-center gap-3 cursor-pointer ${isSel ? 'selected' : ''}`}>
+                  <div className="w-12 h-12 rounded-xl flex items-center justify-center" style={{ background: isSel ? 'rgba(255,255,255,0.2)' : 'var(--bg-secondary)' }}>
+                    <Icon className="w-6 h-6" style={{ color: isSel ? '#FFFFFF' : cat.color }} />
+                  </div>
+                  <div>
+                    <div className={`text-sm font-bold leading-tight ${isSel ? 'text-white' : 'text-[var(--text-primary)]'}`}>{cat.label}</div>
+                    <div className={`text-[10px] mt-1 leading-snug ${isSel ? 'text-white/70' : 'text-[var(--text-tertiary)]'}`}>{cat.desc}</div>
+                  </div>
+                </button>
+              );
+            })}
           </div>
         </div>
       )}
@@ -203,13 +216,17 @@ export default function ReportNewPage() {
       {step===1 && (
         <div className="space-y-6 page-enter">
           <div><h2 className="text-title text-[var(--text-primary)]">Describe the Problem</h2><p className="text-sm text-[var(--text-secondary)] mt-1">Be specific — location, severity, how many people affected</p></div>
-          {category && (
-            <div className="flex items-center gap-2">
-              <span className="text-2xl">{CATEGORIES.find(c=>c.id===category)?.icon}</span>
-              <span className="font-semibold text-sm text-[var(--text-primary)]">{CATEGORIES.find(c=>c.id===category)?.label}</span>
-              <button onClick={() => setStep(0)} className="ml-2 text-xs text-[var(--accent-primary)] underline cursor-pointer">change</button>
-            </div>
-          )}
+          {category && (() => {
+            const catObj = CATEGORIES.find(c=>c.id===category);
+            const Icon = catObj?.icon || FileText;
+            return (
+              <div className="flex items-center gap-2">
+                <Icon className="w-5 h-5 text-[var(--accent-primary)]" />
+                <span className="font-semibold text-sm text-[var(--text-primary)]">{catObj?.label}</span>
+                <button onClick={() => setStep(0)} className="ml-2 text-xs text-[var(--accent-primary)] underline cursor-pointer">change</button>
+              </div>
+            );
+          })()}
           <div>
             <label htmlFor="description" className="form-label">Description <span className="text-[var(--status-danger)]">*</span></label>
             <textarea id="description" rows={8} value={description} onChange={e=>setDescription(e.target.value)}
@@ -336,7 +353,21 @@ export default function ReportNewPage() {
           <div><h2 className="text-title text-[var(--text-primary)]">Review Your Report</h2><p className="text-sm text-[var(--text-secondary)] mt-1">Please review before submitting</p></div>
           <div className="card-coffee divide-y divide-[var(--border-warm)]">
             <div className="p-5 flex items-center justify-between">
-              <div className="flex items-center gap-3"><span className="text-2xl">{CATEGORIES.find(c=>c.id===category)?.icon}</span><div><div className="text-xs text-[var(--text-tertiary)]">Category</div><div className="font-semibold text-sm text-[var(--text-primary)]">{CATEGORIES.find(c=>c.id===category)?.label}</div></div></div>
+              <div className="flex items-center gap-3">
+                {(() => {
+                  const catObj = CATEGORIES.find(c=>c.id===category);
+                  const Icon = catObj?.icon || FileText;
+                  return (
+                    <div className="w-9 h-9 rounded-lg bg-[var(--bg-secondary)] border border-[var(--border-warm)] flex items-center justify-center">
+                      <Icon className="w-5 h-5 text-[var(--accent-primary)]" />
+                    </div>
+                  );
+                })()}
+                <div>
+                  <div className="text-xs text-[var(--text-tertiary)]">Category</div>
+                  <div className="font-semibold text-sm text-[var(--text-primary)]">{CATEGORIES.find(c=>c.id===category)?.label}</div>
+                </div>
+              </div>
               <button onClick={()=>setStep(0)} className="text-xs text-[var(--accent-primary)] underline cursor-pointer">Edit</button>
             </div>
             <div className="p-5">

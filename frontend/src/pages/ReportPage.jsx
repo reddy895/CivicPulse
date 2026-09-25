@@ -2,7 +2,8 @@ import React, { useState, useRef, useCallback, useEffect } from 'react';
 import {
   FileText, Image, MapPin, CheckCircle2, ArrowRight, ArrowLeft,
   X, Plus, ZoomIn, ChevronLeft, ChevronRight, AlertCircle, Loader2,
-  Sparkles, Clock, CheckCircle, Upload, Camera
+  Sparkles, Clock, CheckCircle, Upload, Camera,
+  Car, Droplets, Zap, HeartPulse, GraduationCap, Radio, Waves
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../context/AuthContext';
@@ -12,13 +13,13 @@ import { toast } from '../components/ui/Toast';
 const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api';
 
 const CATEGORIES = [
-  { id: 'Roads & Public Transport', icon: '🛣️', key: 'roads', color: '#D4A373', bg: '#FDF8F2' },
-  { id: 'Water & Sanitation', icon: '💧', key: 'water', color: '#5A7D9A', bg: '#F0F4F8' },
-  { id: 'Clean Energy & Grid', icon: '⚡', key: 'electricity', color: '#C78D3F', bg: '#FDF6E7' },
-  { id: 'Healthcare & Clinics', icon: '🏥', key: 'healthcare', color: '#B54A4A', bg: '#FDF2F2' },
-  { id: 'Education & Schools', icon: '🎓', key: 'education', color: '#5A8F6E', bg: '#F0F6F2' },
-  { id: 'Digital Public Infrastructure', icon: '📡', key: 'digital', color: '#7B68EE', bg: '#F4F3FF' },
-  { id: 'Flood & Climate Resilience', icon: '🌊', key: 'flood', color: '#2C7FB8', bg: '#EBF4FC' },
+  { id: 'Roads & Public Transport', icon: Car, key: 'roads', color: '#D4A373', bg: '#FDF8F2' },
+  { id: 'Water & Sanitation', icon: Droplets, key: 'water', color: '#5A7D9A', bg: '#F0F4F8' },
+  { id: 'Clean Energy & Grid', icon: Zap, key: 'electricity', color: '#C78D3F', bg: '#FDF6E7' },
+  { id: 'Healthcare & Clinics', icon: HeartPulse, key: 'healthcare', color: '#B54A4A', bg: '#FDF2F2' },
+  { id: 'Education & Schools', icon: GraduationCap, key: 'education', color: '#5A8F6E', bg: '#F0F6F2' },
+  { id: 'Digital Public Infrastructure', icon: Radio, key: 'digital', color: '#7B68EE', bg: '#F4F3FF' },
+  { id: 'Flood & Climate Resilience', icon: Waves, key: 'flood', color: '#2C7FB8', bg: '#EBF4FC' },
 ];
 
 const STEPS = ['step_category', 'step_description', 'step_evidence', 'step_location', 'step_review'];
@@ -382,25 +383,31 @@ export default function ReportPage({ onNavigate }) {
             <p className="text-sm text-[var(--text-secondary)] mt-1">{t('report.choose_category_desc')}</p>
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3" role="radiogroup" aria-label="Infrastructure category">
-            {CATEGORIES.map(cat => (
-              <button
-                key={cat.id}
-                role="radio"
-                aria-checked={category === cat.id}
-                onClick={() => setCategory(cat.id)}
-                className={`category-card flex flex-col items-center gap-3 ${category === cat.id ? 'selected' : ''}`}
-              >
-                <div className="text-4xl">{cat.icon}</div>
-                <div>
-                  <div className={`text-sm font-bold leading-tight ${category === cat.id ? 'text-white' : 'text-[var(--text-primary)]'}`}>
-                    {t(`categories.${cat.key}`)}
+            {CATEGORIES.map(cat => {
+              const Icon = cat.icon;
+              const isSel = category === cat.id;
+              return (
+                <button
+                  key={cat.id}
+                  role="radio"
+                  aria-checked={isSel}
+                  onClick={() => setCategory(cat.id)}
+                  className={`category-card flex flex-col items-center gap-3 cursor-pointer ${isSel ? 'selected' : ''}`}
+                >
+                  <div className="w-12 h-12 rounded-xl flex items-center justify-center" style={{ background: isSel ? 'rgba(255,255,255,0.2)' : 'var(--bg-secondary)' }}>
+                    <Icon className="w-6 h-6" style={{ color: isSel ? '#FFFFFF' : cat.color }} />
                   </div>
-                  <div className={`text-xs mt-1 leading-snug ${category === cat.id ? 'text-white/70' : 'text-[var(--text-tertiary)]'}`}>
-                    {t(`categories.${cat.key}_desc`)}
+                  <div>
+                    <div className={`text-sm font-bold leading-tight ${isSel ? 'text-white' : 'text-[var(--text-primary)]'}`}>
+                      {t(`categories.${cat.key}`)}
+                    </div>
+                    <div className={`text-xs mt-1 leading-snug ${isSel ? 'text-white/70' : 'text-[var(--text-tertiary)]'}`}>
+                      {t(`categories.${cat.key}_desc`)}
+                    </div>
                   </div>
-                </div>
-              </button>
-            ))}
+                </button>
+              );
+            })}
           </div>
         </div>
       )}
@@ -413,15 +420,19 @@ export default function ReportPage({ onNavigate }) {
             <p className="text-sm text-[var(--text-secondary)] mt-1">Be specific about the location, severity, and how many people are affected.</p>
           </div>
 
-          {category && (
-            <div className="flex items-center gap-2 text-sm">
-              <span className="text-xl">{CATEGORIES.find(c => c.id === category)?.icon}</span>
-              <span className="font-semibold text-[var(--text-primary)]">{t(`categories.${CATEGORIES.find(c => c.id === category)?.key}`)}</span>
-              <button onClick={() => setStep(0)} className="ml-2 text-xs text-[var(--accent-primary)] underline cursor-pointer">
-                {t('report.edit')}
-              </button>
-            </div>
-          )}
+          {category && (() => {
+            const catObj = CATEGORIES.find(c => c.id === category);
+            const Icon = catObj?.icon || FileText;
+            return (
+              <div className="flex items-center gap-2 text-sm">
+                <Icon className="w-5 h-5 text-[var(--accent-primary)]" />
+                <span className="font-semibold text-[var(--text-primary)]">{t(`categories.${catObj?.key}`)}</span>
+                <button onClick={() => setStep(0)} className="ml-2 text-xs text-[var(--accent-primary)] underline cursor-pointer">
+                  {t('report.edit')}
+                </button>
+              </div>
+            );
+          })()}
 
           <div>
             <label htmlFor="description" className="form-label">
@@ -669,7 +680,15 @@ export default function ReportPage({ onNavigate }) {
             {/* Category */}
             <div className="p-5 flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <span className="text-2xl">{CATEGORIES.find(c => c.id === category)?.icon}</span>
+                {(() => {
+                  const catObj = CATEGORIES.find(c => c.id === category);
+                  const Icon = catObj?.icon || FileText;
+                  return (
+                    <div className="w-9 h-9 rounded-lg bg-[var(--bg-secondary)] border border-[var(--border-warm)] flex items-center justify-center">
+                      <Icon className="w-5 h-5 text-[var(--accent-primary)]" />
+                    </div>
+                  );
+                })()}
                 <div>
                   <div className="text-xs text-[var(--text-tertiary)]">{t('report.step_category')}</div>
                   <div className="font-semibold text-sm text-[var(--text-primary)]">{t(`categories.${CATEGORIES.find(c => c.id === category)?.key}`)}</div>

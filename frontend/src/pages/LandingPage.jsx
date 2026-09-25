@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { 
   ArrowRight, FileText, Map, BarChart3, Shield, CheckCircle2,
   Zap, Droplets, Road, Heart, GraduationCap, Wifi, CloudRain,
-  TrendingUp, Users, Globe2, Clock, ChevronRight
+  TrendingUp, Users, Globe2, Clock, ChevronRight, Building2, Camera, Cpu, Flame, MapPin
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
@@ -62,49 +62,49 @@ function CivicVisualization() {
         {/* Road Node */}
         <g className="node-float" style={{animationDelay:'0s'}}>
           <circle cx="80" cy="100" r="22" fill="#2C1810" stroke="#D4A373" strokeWidth="1.5" opacity="0.9"/>
-          <text x="80" y="95" textAnchor="middle" fill="#D4A373" fontSize="14">🛣️</text>
+          <text x="80" y="98" textAnchor="middle" fill="#FFFFFF" fontSize="8" fontWeight="800">ROAD</text>
           <text x="80" y="112" textAnchor="middle" fill="rgba(212,163,115,0.7)" fontSize="7" fontFamily="Inter">ROADS</text>
         </g>
 
         {/* Water Node */}
         <g className="node-float" style={{animationDelay:'0.7s'}}>
           <circle cx="340" cy="90" r="22" fill="#2C1810" stroke="#5A7D9A" strokeWidth="1.5" opacity="0.9"/>
-          <text x="340" y="85" textAnchor="middle" fill="#5A7D9A" fontSize="14">💧</text>
+          <text x="340" y="88" textAnchor="middle" fill="#FFFFFF" fontSize="8" fontWeight="800">WTR</text>
           <text x="340" y="102" textAnchor="middle" fill="rgba(90,125,154,0.7)" fontSize="7" fontFamily="Inter">WATER</text>
         </g>
 
         {/* Health Node */}
         <g className="node-float" style={{animationDelay:'1.4s'}}>
           <circle cx="60" cy="260" r="22" fill="#2C1810" stroke="#B54A4A" strokeWidth="1.5" opacity="0.9"/>
-          <text x="60" y="255" textAnchor="middle" fill="#B54A4A" fontSize="14">🏥</text>
+          <text x="60" y="258" textAnchor="middle" fill="#FFFFFF" fontSize="8" fontWeight="800">MED</text>
           <text x="60" y="272" textAnchor="middle" fill="rgba(181,74,74,0.7)" fontSize="7" fontFamily="Inter">HEALTH</text>
         </g>
 
         {/* Energy Node */}
         <g className="node-float" style={{animationDelay:'0.3s'}}>
           <circle cx="360" cy="280" r="22" fill="#2C1810" stroke="#C78D3F" strokeWidth="1.5" opacity="0.9"/>
-          <text x="360" y="275" textAnchor="middle" fill="#C78D3F" fontSize="14">⚡</text>
+          <text x="360" y="278" textAnchor="middle" fill="#FFFFFF" fontSize="8" fontWeight="800">PWR</text>
           <text x="360" y="292" textAnchor="middle" fill="rgba(199,141,63,0.7)" fontSize="7" fontFamily="Inter">ENERGY</text>
         </g>
 
         {/* Education Node */}
         <g className="node-float" style={{animationDelay:'1.0s'}}>
           <circle cx="150" cy="320" r="22" fill="#2C1810" stroke="#5A8F6E" strokeWidth="1.5" opacity="0.9"/>
-          <text x="150" y="315" textAnchor="middle" fill="#5A8F6E" fontSize="14">🎓</text>
+          <text x="150" y="318" textAnchor="middle" fill="#FFFFFF" fontSize="8" fontWeight="800">EDU</text>
           <text x="150" y="332" textAnchor="middle" fill="rgba(90,143,110,0.7)" fontSize="7" fontFamily="Inter">EDUCATION</text>
         </g>
 
         {/* Digital Node */}
         <g className="node-float" style={{animationDelay:'1.8s'}}>
           <circle cx="280" cy="340" r="22" fill="#2C1810" stroke="#7B68EE" strokeWidth="1.5" opacity="0.9"/>
-          <text x="280" y="335" textAnchor="middle" fill="#7B68EE" fontSize="14">📡</text>
+          <text x="280" y="338" textAnchor="middle" fill="#FFFFFF" fontSize="8" fontWeight="800">DPI</text>
           <text x="280" y="352" textAnchor="middle" fill="rgba(123,104,238,0.7)" fontSize="7" fontFamily="Inter">DIGITAL</text>
         </g>
 
         {/* Gov node top */}
         <g className="node-float" style={{animationDelay:'0.5s'}}>
           <circle cx="210" cy="60" r="22" fill="#5A8F6E" stroke="rgba(90,143,110,0.3)" strokeWidth="3" opacity="0.9"/>
-          <text x="210" y="55" textAnchor="middle" fill="white" fontSize="14">🏛️</text>
+          <text x="210" y="58" textAnchor="middle" fill="white" fontSize="8" fontWeight="800">GOV</text>
           <text x="210" y="72" textAnchor="middle" fill="rgba(255,255,255,0.7)" fontSize="7" fontFamily="Inter">GOVT</text>
         </g>
 
@@ -124,13 +124,13 @@ function CivicVisualization() {
 }
 
 const CATEGORIES = [
-  { icon: '🛣️', labelKey: 'categories.roads', color: '#D4A373' },
-  { icon: '💧', labelKey: 'categories.water', color: '#5A7D9A' },
-  { icon: '⚡', labelKey: 'categories.electricity', color: '#C78D3F' },
-  { icon: '🏥', labelKey: 'categories.healthcare', color: '#B54A4A' },
-  { icon: '🎓', labelKey: 'categories.education', color: '#5A8F6E' },
-  { icon: '📡', labelKey: 'categories.digital', color: '#7B68EE' },
-  { icon: '🌊', labelKey: 'categories.flood', color: '#2C7FB8' },
+  { icon: Road, labelKey: 'categories.roads', color: '#D4A373' },
+  { icon: Droplets, labelKey: 'categories.water', color: '#5A7D9A' },
+  { icon: Zap, labelKey: 'categories.electricity', color: '#C78D3F' },
+  { icon: Heart, labelKey: 'categories.healthcare', color: '#B54A4A' },
+  { icon: GraduationCap, labelKey: 'categories.education', color: '#5A8F6E' },
+  { icon: Wifi, labelKey: 'categories.digital', color: '#7B68EE' },
+  { icon: CloudRain, labelKey: 'categories.flood', color: '#2C7FB8' },
 ];
 
 const FLOW_STEPS = [
@@ -380,18 +380,23 @@ export default function LandingPage({ onNavigate }) {
               </p>
               <div className="mt-8 space-y-4">
                 {[
-                  { icon: '📍', title: 'Real-time hotspots', desc: 'Citizen reports cluster automatically by geography' },
-                  { icon: '🔥', title: 'Severity heatmaps', desc: 'Visual urgency layering across districts' },
-                  { icon: '📊', title: 'Category filters', desc: 'Filter by type, severity, and date range' },
-                ].map((item, i) => (
-                  <div key={i} className="flex items-start gap-4">
-                    <div className="text-xl flex-shrink-0">{item.icon}</div>
-                    <div>
-                      <div className="font-semibold text-[var(--text-primary)] text-sm">{item.title}</div>
-                      <div className="text-xs text-[var(--text-secondary)] mt-0.5">{item.desc}</div>
+                  { icon: MapPin, title: 'Real-time hotspots', desc: 'Citizen reports cluster automatically by geography' },
+                  { icon: Flame, title: 'Severity heatmaps', desc: 'Visual urgency layering across districts' },
+                  { icon: BarChart3, title: 'Category filters', desc: 'Filter by type, severity, and date range' },
+                ].map((item, i) => {
+                  const Icon = item.icon;
+                  return (
+                    <div key={i} className="flex items-start gap-4">
+                      <div className="w-8 h-8 rounded-lg bg-[var(--bg-secondary)] text-[var(--accent-primary)] flex items-center justify-center flex-shrink-0">
+                        <Icon className="w-4 h-4" />
+                      </div>
+                      <div>
+                        <div className="font-semibold text-[var(--text-primary)] text-sm">{item.title}</div>
+                        <div className="text-xs text-[var(--text-secondary)] mt-0.5">{item.desc}</div>
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
               <button
                 onClick={() => onNavigate('map')}
@@ -437,7 +442,9 @@ export default function LandingPage({ onNavigate }) {
                   </svg>
                 </div>
                 <div className="relative text-center z-10">
-                  <div className="text-[var(--accent-tertiary)] text-sm font-semibold mb-2">🗺️ GIS Command Map</div>
+                  <div className="text-[var(--accent-tertiary)] text-sm font-semibold mb-2 flex items-center justify-center gap-1.5">
+                    <Map className="w-4 h-4 inline" /> GIS Command Map
+                  </div>
                   <div className="text-white text-xs opacity-70">Click to open interactive map</div>
                 </div>
               </div>
@@ -488,7 +495,7 @@ export default function LandingPage({ onNavigate }) {
 
                 <div className="flex items-center gap-3 text-xs text-[var(--text-tertiary)]">
                   <span className="px-2 py-0.5 rounded-full bg-[var(--bg-secondary)] text-[var(--text-secondary)] font-medium">{report.category}</span>
-                  <span>📍 {report.location}</span>
+                  <span className="flex items-center gap-1"><MapPin className="w-3 h-3 text-[var(--text-tertiary)]" /> {report.location}</span>
                 </div>
 
                 <div className="flex items-center justify-between pt-3 border-t border-[var(--border-warm)] text-xs">
@@ -496,7 +503,7 @@ export default function LandingPage({ onNavigate }) {
                     <span className="flex items-center gap-1">
                       <Users className="w-3 h-3" /> {report.affected.toLocaleString()} affected
                     </span>
-                    <span>🕒 {report.time}</span>
+                    <span className="flex items-center gap-1"><Clock className="w-3 h-3 text-[var(--text-tertiary)]" /> {report.time}</span>
                   </div>
                   <span className={`badge-pill ${
                     report.status === 'Under Review' ? 'badge-pill-warning' : 
@@ -538,19 +545,24 @@ export default function LandingPage({ onNavigate }) {
               </p>
               <div className="mt-8 space-y-5">
                 {[
-                  { icon: '🏛️', title: 'Structured Complaint Queue', desc: 'Filterable by category, severity, and district' },
-                  { icon: '📷', title: 'Evidence Review Panel', desc: 'View citizen-uploaded photos with AI context' },
-                  { icon: '🤖', title: 'AI Assessment', desc: 'Confidence-scored category and severity predictions' },
-                  { icon: '✅', title: 'Status Transparency', desc: 'Citizens see every update in real-time' },
-                ].map((item, i) => (
-                  <div key={i} className="flex items-start gap-4">
-                    <div className="text-2xl flex-shrink-0">{item.icon}</div>
-                    <div>
-                      <div className="font-semibold text-white text-sm">{item.title}</div>
-                      <div className="text-xs text-[rgba(255,255,255,0.5)] mt-0.5">{item.desc}</div>
+                  { icon: Building2, title: 'Structured Complaint Queue', desc: 'Filterable by category, severity, and district' },
+                  { icon: Camera, title: 'Evidence Review Panel', desc: 'View citizen-uploaded photos with AI context' },
+                  { icon: Cpu, title: 'AI Assessment', desc: 'Confidence-scored category and severity predictions' },
+                  { icon: CheckCircle2, title: 'Status Transparency', desc: 'Citizens see every update in real-time' },
+                ].map((item, i) => {
+                  const Icon = item.icon;
+                  return (
+                    <div key={i} className="flex items-start gap-4">
+                      <div className="w-10 h-10 rounded-xl bg-white/10 text-[var(--accent-tertiary)] flex items-center justify-center flex-shrink-0">
+                        <Icon className="w-5 h-5" />
+                      </div>
+                      <div>
+                        <div className="font-semibold text-white text-sm">{item.title}</div>
+                        <div className="text-xs text-[rgba(255,255,255,0.5)] mt-0.5">{item.desc}</div>
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
 

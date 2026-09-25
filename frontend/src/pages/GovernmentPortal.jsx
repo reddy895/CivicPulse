@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Filter, RefreshCw, Loader2, MapPin, Image, Clock, ChevronRight, CheckCircle2, AlertTriangle, Building2, Sparkles, X } from 'lucide-react';
+import { Filter, RefreshCw, Loader2, MapPin, Image, Clock, ChevronRight, CheckCircle2, AlertTriangle, Building2, Sparkles, X, ClipboardList, Tag } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../context/AuthContext';
 import { getRequests, updateComplaintStatus } from '../services/api';
@@ -101,19 +101,22 @@ export default function GovernmentPortal({ selectedCountry }) {
       {/* KPI Row */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
         {[
-          { label: t('gov.total_complaints'), value: complaints.length, color:'var(--accent-primary)', icon:'📋' },
-          { label: t('gov.critical'), value: complaints.filter(c=>c.urgency==='Critical').length, color:'var(--status-danger)', icon:'🚨' },
-          { label: t('gov.pending'), value: complaints.filter(c=>!['Resolved','Rejected'].some(s=>c.resolution_stage?.includes(s))).length, color:'var(--status-warning)', icon:'⏳' },
-          { label: t('gov.resolved'), value: complaints.filter(c=>c.resolution_stage?.includes('Resolved')).length, color:'var(--status-success)', icon:'✅' },
-        ].map((kpi, i) => (
-          <div key={i} className="metric-card flex items-center gap-4">
-            <div className="text-3xl">{kpi.icon}</div>
-            <div>
-              <div className="text-kpi" style={{fontSize:'1.8rem', color: kpi.color}}>{kpi.value}</div>
-              <div className="text-kpi-sub">{kpi.label}</div>
+          { label: t('gov.total_complaints'), value: complaints.length, color:'var(--accent-primary)', icon: ClipboardList },
+          { label: t('gov.critical'), value: complaints.filter(c=>c.urgency==='Critical').length, color:'var(--status-danger)', icon: AlertTriangle },
+          { label: t('gov.pending'), value: complaints.filter(c=>!['Resolved','Rejected'].some(s=>c.resolution_stage?.includes(s))).length, color:'var(--status-warning)', icon: Clock },
+          { label: t('gov.resolved'), value: complaints.filter(c=>c.resolution_stage?.includes('Resolved')).length, color:'var(--status-success)', icon: CheckCircle2 },
+        ].map((kpi, i) => {
+          const Icon = kpi.icon;
+          return (
+            <div key={i} className="metric-card flex items-center gap-4">
+              <Icon className="w-7 h-7" style={{ color: kpi.color }} />
+              <div>
+                <div className="text-kpi" style={{fontSize:'1.8rem', color: kpi.color}}>{kpi.value}</div>
+                <div className="text-kpi-sub">{kpi.label}</div>
+              </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
 
       {/* Filters */}
@@ -155,8 +158,8 @@ export default function GovernmentPortal({ selectedCountry }) {
                 {complaint.translated_text || complaint.original_text}
               </p>
               <div className="flex items-center gap-3 mt-2 text-[10px] text-[var(--text-tertiary)]">
-                <span>📍 {complaint.location_name}</span>
-                <span>🏷️ {complaint.category?.split('&')[0]}</span>
+                <span className="flex items-center gap-1"><MapPin className="w-3 h-3 text-[var(--accent-primary)]" /> {complaint.location_name}</span>
+                <span className="flex items-center gap-1"><Tag className="w-3 h-3 text-[var(--text-tertiary)]" /> {complaint.category?.split('&')[0]}</span>
               </div>
             </button>
           ))}
@@ -247,7 +250,7 @@ export default function GovernmentPortal({ selectedCountry }) {
         ) : (
           <div className="lg:col-span-3 flex items-center justify-center p-20 text-center">
             <div>
-              <div className="text-4xl mb-3">📋</div>
+              <ClipboardList className="w-10 h-10 text-[var(--accent-primary)] mx-auto mb-3 opacity-60" />
               <div className="text-[var(--text-secondary)]">Select a complaint to review</div>
             </div>
           </div>

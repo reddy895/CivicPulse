@@ -50,7 +50,6 @@ export default function GovComplaintsPage() {
 
   const filteredRequests = useMemo(() => {
     return requests.filter(item => {
-      // Search
       const searchMatch = !searchTerm || (
         (item.id || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
         (item.original_text || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -59,13 +58,9 @@ export default function GovComplaintsPage() {
         (item.state_province || '').toLowerCase().includes(searchTerm.toLowerCase())
       );
 
-      // Category
       const catMatch = selectedCategory === 'ALL' || item.category === selectedCategory;
-
-      // Urgency
       const urgMatch = selectedUrgency === 'ALL' || item.urgency === selectedUrgency;
 
-      // Status
       let statusMatch = true;
       if (selectedStatus !== 'ALL') {
         const s = (item.status || '').toLowerCase();
@@ -87,39 +82,39 @@ export default function GovComplaintsPage() {
   const getUrgencyBadge = (urgency) => {
     switch (urgency) {
       case 'Critical':
-        return <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-red-500/20 text-red-400 border border-red-500/30">Critical</span>;
+        return <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-[var(--status-danger-bg)] text-[var(--status-danger)] border border-[var(--status-danger-border)]">Critical</span>;
       case 'High':
-        return <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-500/20 text-amber-400 border border-amber-500/30">High</span>;
+        return <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-[var(--status-warning-bg)] text-[var(--status-warning)] border border-[var(--status-warning-border)]">High</span>;
       case 'Medium':
-        return <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-blue-500/20 text-blue-400 border border-blue-500/30">Medium</span>;
+        return <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-[var(--status-info-bg)] text-[var(--status-info)] border border-[var(--status-info-border)]">Medium</span>;
       default:
-        return <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-gray-500/20 text-gray-300 border border-gray-500/30">Low</span>;
+        return <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-[var(--bg-secondary)] text-[var(--text-secondary)] border border-[var(--border-warm)]">Low</span>;
     }
   };
 
   const getStatusBadge = (status = '') => {
     const s = status.toLowerCase();
     if (s.includes('resolved')) {
-      return <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">Resolved</span>;
+      return <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-[var(--status-success-bg)] text-[var(--status-success)] border border-[var(--status-success-border)]">Resolved</span>;
     }
     if (s.includes('dispatched') || s.includes('progress') || s.includes('action')) {
-      return <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-cyan-500/20 text-cyan-400 border border-cyan-500/30">In Progress</span>;
+      return <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-[var(--status-info-bg)] text-[var(--status-info)] border border-[var(--status-info-border)]">In Progress</span>;
     }
-    return <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-500/20 text-amber-300 border border-amber-500/30">Pending</span>;
+    return <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-[var(--status-warning-bg)] text-[var(--status-warning)] border border-[var(--status-warning-border)]">Pending</span>;
   };
 
   return (
-    <div className="text-white space-y-6 pb-16">
+    <div className="space-y-6 pb-12">
       
       {/* Top Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-black text-white tracking-tight flex items-center gap-2">
-            <FileText className="w-6 h-6 text-[var(--accent-tertiary)]" />
+          <h1 className="text-xl sm:text-2xl font-bold text-[var(--text-primary)] tracking-tight flex items-center gap-2">
+            <FileText className="w-6 h-6 text-[var(--accent-primary)]" />
             Citizen Grievance Records
           </h1>
-          <p className="text-xs text-white/60 mt-1">
-            Search, triage, and issue official agency work orders across sovereign jurisdictions.
+          <p className="text-xs text-[var(--text-secondary)] mt-0.5">
+            Search, triage, and issue official agency work orders across jurisdictions.
           </p>
         </div>
 
@@ -127,7 +122,7 @@ export default function GovComplaintsPage() {
           <button
             onClick={fetchComplaints}
             disabled={loading}
-            className="px-3.5 py-2 rounded-xl bg-white/10 hover:bg-white/15 text-white/90 text-xs font-semibold border border-white/10 transition flex items-center gap-2"
+            className="px-3.5 py-2 rounded-lg bg-white hover:bg-[var(--bg-secondary)] text-[var(--text-primary)] text-xs font-semibold border border-[var(--border-warm)] transition flex items-center gap-2 cursor-pointer shadow-xs"
           >
             <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
             <span>Reload</span>
@@ -136,18 +131,18 @@ export default function GovComplaintsPage() {
       </div>
 
       {/* Filter and Search Bar */}
-      <div className="bg-[#162030] border border-white/10 rounded-2xl p-4 sm:p-5 shadow-xl space-y-4">
+      <div className="bg-white border border-[var(--border-warm)] rounded-xl p-4 sm:p-5 shadow-sm space-y-4">
         <div className="grid grid-cols-1 md:grid-cols-12 gap-3">
           
           {/* Search Input (5 Cols) */}
           <div className="md:col-span-5 relative">
-            <Search className="w-4 h-4 text-white/40 absolute left-3.5 top-1/2 -translate-y-1/2" />
+            <Search className="w-4 h-4 text-[var(--text-tertiary)] absolute left-3.5 top-1/2 -translate-y-1/2" />
             <input
               type="text"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               placeholder="Search by ID, keyword, district, or citizen complaint..."
-              className="w-full bg-[#0F1923] border border-white/15 rounded-xl pl-10 pr-4 py-2.5 text-xs text-white placeholder-white/30 focus:outline-none focus:border-[var(--accent-tertiary)] transition"
+              className="w-full bg-[var(--bg-primary)] border border-[var(--border-warm)] rounded-lg pl-10 pr-4 py-2 text-xs text-[var(--text-primary)] placeholder-[var(--text-placeholder)] focus:outline-none focus:border-[var(--accent-primary)] transition"
             />
           </div>
 
@@ -156,7 +151,7 @@ export default function GovComplaintsPage() {
             <select
               value={selectedCategory}
               onChange={(e) => setSelectedCategory(e.target.value)}
-              className="w-full bg-[#0F1923] border border-white/15 rounded-xl px-3 py-2.5 text-xs text-white focus:outline-none focus:border-[var(--accent-tertiary)] transition"
+              className="w-full bg-[var(--bg-primary)] border border-[var(--border-warm)] rounded-lg px-3 py-2 text-xs text-[var(--text-primary)] focus:outline-none focus:border-[var(--accent-primary)] transition cursor-pointer"
             >
               <option value="ALL">All Sectors / Categories</option>
               {CATEGORIES.filter(c => c !== 'ALL').map(cat => (
@@ -170,7 +165,7 @@ export default function GovComplaintsPage() {
             <select
               value={selectedUrgency}
               onChange={(e) => setSelectedUrgency(e.target.value)}
-              className="w-full bg-[#0F1923] border border-white/15 rounded-xl px-3 py-2.5 text-xs text-white focus:outline-none focus:border-[var(--accent-tertiary)] transition"
+              className="w-full bg-[var(--bg-primary)] border border-[var(--border-warm)] rounded-lg px-3 py-2 text-xs text-[var(--text-primary)] focus:outline-none focus:border-[var(--accent-primary)] transition cursor-pointer"
             >
               <option value="ALL">All Urgency</option>
               {URGENCIES.filter(u => u !== 'ALL').map(u => (
@@ -184,10 +179,10 @@ export default function GovComplaintsPage() {
             <select
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value)}
-              className="w-full bg-[#0F1923] border border-white/15 rounded-xl px-3 py-2.5 text-xs text-white focus:outline-none focus:border-[var(--accent-tertiary)] transition"
+              className="w-full bg-[var(--bg-primary)] border border-[var(--border-warm)] rounded-lg px-3 py-2 text-xs text-[var(--text-primary)] focus:outline-none focus:border-[var(--accent-primary)] transition cursor-pointer"
             >
               <option value="urgency_desc">Highest Urgency</option>
-              <option value="upvotes_desc">Most Upvotes</option>
+              <option value="upvotes_desc">Most Endorsements</option>
               <option value="newest">Newest First</option>
               <option value="oldest">Oldest First</option>
             </select>
@@ -196,17 +191,17 @@ export default function GovComplaintsPage() {
         </div>
 
         {/* Quick Filter Pills */}
-        <div className="flex items-center justify-between flex-wrap gap-2 pt-2 border-t border-white/5 text-xs text-white/50">
+        <div className="flex items-center justify-between flex-wrap gap-2 pt-2 border-t border-[var(--border-divider)] text-xs text-[var(--text-secondary)]">
           <div className="flex items-center gap-2 flex-wrap">
-            <span className="font-semibold text-white/70">Status:</span>
+            <span className="font-semibold text-[var(--text-primary)]">Status:</span>
             {STATUSES.map(st => (
               <button
                 key={st}
                 onClick={() => setSelectedStatus(st)}
-                className={`px-2.5 py-1 rounded-lg text-[11px] font-semibold transition ${
+                className={`px-2.5 py-1 rounded-md text-[11px] font-semibold transition cursor-pointer ${
                   selectedStatus === st 
-                    ? 'bg-[var(--accent-tertiary)] text-slate-950 shadow-sm' 
-                    : 'bg-white/5 text-white/60 hover:bg-white/10'
+                    ? 'bg-[var(--accent-primary)] text-white shadow-xs' 
+                    : 'bg-[var(--bg-secondary)] text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
                 }`}
               >
                 {st}
@@ -214,22 +209,22 @@ export default function GovComplaintsPage() {
             ))}
           </div>
 
-          <div className="text-[11px] text-white/40">
-            Showing <strong className="text-white">{filteredRequests.length}</strong> of {requests.length} records
+          <div className="text-[11px] text-[var(--text-tertiary)]">
+            Showing <strong className="text-[var(--text-primary)]">{filteredRequests.length}</strong> of {requests.length} records
           </div>
         </div>
       </div>
 
       {/* Grievances Table / Cards View */}
-      <div className="bg-[#162030] border border-white/10 rounded-2xl overflow-hidden shadow-2xl">
+      <div className="bg-white border border-[var(--border-warm)] rounded-xl overflow-hidden shadow-sm">
         {loading ? (
-          <div className="py-20 text-center text-white/40 text-sm">
-            <RefreshCw className="w-8 h-8 animate-spin mx-auto mb-3 text-[var(--accent-tertiary)]" />
+          <div className="py-20 text-center text-[var(--text-tertiary)] text-sm">
+            <RefreshCw className="w-8 h-8 animate-spin mx-auto mb-3 text-[var(--accent-primary)]" />
             Loading records from database...
           </div>
         ) : filteredRequests.length === 0 ? (
-          <div className="py-20 text-center text-white/40 text-sm space-y-2">
-            <AlertCircle className="w-8 h-8 mx-auto text-white/20" />
+          <div className="py-20 text-center text-[var(--text-tertiary)] text-sm space-y-2">
+            <AlertCircle className="w-8 h-8 mx-auto text-[var(--text-placeholder)]" />
             <p>No complaints match the selected filter criteria.</p>
             <button
               onClick={() => {
@@ -238,7 +233,7 @@ export default function GovComplaintsPage() {
                 setSelectedUrgency('ALL');
                 setSelectedStatus('ALL');
               }}
-              className="text-xs text-[var(--accent-tertiary)] hover:underline"
+              className="text-xs text-[var(--accent-primary)] hover:underline cursor-pointer"
             >
               Reset all filters
             </button>
@@ -247,49 +242,49 @@ export default function GovComplaintsPage() {
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs border-collapse">
               <thead>
-                <tr className="bg-[#0F1923] border-b border-white/10 text-white/40 uppercase tracking-wider text-[10px]">
-                  <th className="py-3 px-4">ID</th>
-                  <th className="py-3 px-4">Urgency</th>
-                  <th className="py-3 px-4">Sector / Category</th>
-                  <th className="py-3 px-4">Complaint Description</th>
-                  <th className="py-3 px-4">Jurisdiction & Location</th>
-                  <th className="py-3 px-4">Citizen Votes</th>
-                  <th className="py-3 px-4">Status</th>
-                  <th className="py-3 px-4 text-right">Action</th>
+                <tr className="bg-[var(--bg-secondary)] border-b border-[var(--border-warm)] text-[var(--text-tertiary)] uppercase tracking-wider text-[10px]">
+                  <th className="py-3 px-4 font-bold">ID</th>
+                  <th className="py-3 px-4 font-bold">Urgency</th>
+                  <th className="py-3 px-4 font-bold">Sector / Category</th>
+                  <th className="py-3 px-4 font-bold">Complaint Description</th>
+                  <th className="py-3 px-4 font-bold">Location</th>
+                  <th className="py-3 px-4 font-bold">Endorsements</th>
+                  <th className="py-3 px-4 font-bold">Status</th>
+                  <th className="py-3 px-4 text-right font-bold">Action</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-white/5">
+              <tbody className="divide-y divide-[var(--border-divider)]">
                 {filteredRequests.map((req) => (
                   <tr
                     key={req.id}
                     onClick={() => navigate(`/gov-demo/complaints/${req.id}`)}
-                    className="hover:bg-white/[0.03] transition-colors cursor-pointer group"
+                    className="hover:bg-[var(--bg-secondary)] transition-colors cursor-pointer group"
                   >
-                    <td className="py-3.5 px-4 font-mono font-bold text-[var(--accent-tertiary)] whitespace-nowrap">
+                    <td className="py-3.5 px-4 font-mono font-bold text-[var(--accent-primary)] whitespace-nowrap">
                       {req.id}
                     </td>
                     <td className="py-3.5 px-4 whitespace-nowrap">
                       {getUrgencyBadge(req.urgency)}
                     </td>
                     <td className="py-3.5 px-4 whitespace-nowrap">
-                      <span className="px-2 py-0.5 rounded bg-white/10 text-white/80 text-[11px]">
+                      <span className="px-2 py-0.5 rounded bg-[var(--bg-secondary)] border border-[var(--border-warm)] text-[var(--text-secondary)] text-[11px] font-medium">
                         {req.category}
                       </span>
                     </td>
                     <td className="py-3.5 px-4 max-w-xs">
-                      <p className="line-clamp-2 text-white/80 group-hover:text-white transition leading-relaxed">
+                      <p className="line-clamp-2 text-[var(--text-primary)] group-hover:text-[var(--accent-primary)] transition leading-relaxed">
                         {req.translated_text || req.original_text}
                       </p>
                     </td>
-                    <td className="py-3.5 px-4 whitespace-nowrap text-white/60">
+                    <td className="py-3.5 px-4 whitespace-nowrap text-[var(--text-secondary)]">
                       <div className="flex items-center gap-1.5">
-                        <MapPin className="w-3.5 h-3.5 text-white/40 shrink-0" />
+                        <MapPin className="w-3.5 h-3.5 text-[var(--accent-primary)] shrink-0" />
                         <span className="truncate max-w-[140px]">{req.location_name || req.state_province || 'GPS Location'}</span>
                       </div>
                     </td>
-                    <td className="py-3.5 px-4 whitespace-nowrap text-white/70">
+                    <td className="py-3.5 px-4 whitespace-nowrap text-[var(--text-primary)]">
                       <div className="flex items-center gap-1 font-semibold">
-                        <Users className="w-3.5 h-3.5 text-white/40" />
+                        <Users className="w-3.5 h-3.5 text-[var(--text-tertiary)]" />
                         {req.upvotes || 1}
                       </div>
                     </td>
@@ -302,7 +297,7 @@ export default function GovComplaintsPage() {
                           e.stopPropagation();
                           navigate(`/gov-demo/complaints/${req.id}`);
                         }}
-                        className="px-3 py-1.5 rounded-lg bg-white/10 hover:bg-[var(--accent-tertiary)] hover:text-slate-950 text-white text-xs font-semibold transition inline-flex items-center gap-1"
+                        className="px-3 py-1.5 rounded-lg bg-[var(--bg-secondary)] hover:bg-[var(--accent-primary)] hover:text-white text-[var(--text-primary)] text-xs font-semibold transition inline-flex items-center gap-1 border border-[var(--border-warm)] cursor-pointer"
                       >
                         <span>Review</span>
                         <ChevronRight className="w-3.5 h-3.5" />
