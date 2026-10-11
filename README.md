@@ -153,6 +153,12 @@ npm run dev
 
 Review [SECURITY.md](SECURITY.md) before deployment. Set `CIVICPULSE_ENV=production` and `CIVICPULSE_ALLOWED_ORIGINS` on the backend, keep `CIVICPULSE_DEMO_MODE=false`, and set `VITE_API_BASE_URL` when the API is hosted separately. Production builds do not include client-only demo sign-in. The in-memory user and session stores are demonstration-only and must be replaced with durable shared storage before serving real users.
 
+### Cloudflare Workers deployment
+
+Configure the Workers build with repository root `/`, build command `npm run build`, and deploy command `npx wrangler deploy`. The root `.nvmrc` selects Node 22, and the root build installs the frontend from `frontend/package-lock.json` before building it. [wrangler.jsonc](wrangler.jsonc) deploys the generated `frontend/dist` as static assets and serves the SPA entry point for client-side routes; no Worker API implementation is included.
+
+The FastAPI backend must be deployed separately. Set `VITE_API_BASE_URL` as a Cloudflare build-time variable to its HTTPS API base, including `/api` (for example, `https://api.example.org/api`). This value is embedded in public frontend assets and must not contain secrets. Configure `CIVICPULSE_ENV`, `CIVICPULSE_ALLOWED_ORIGINS`, and other backend settings on the API host as described in [SECURITY.md](SECURITY.md).
+
 ---
 
 ## 🌐 Supported BRICS Nations & Regional Data

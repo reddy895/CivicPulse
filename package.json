@@ -10,10 +10,11 @@
     "dev:backend": "npm --prefix backend run dev",
     "dev:frontend": "npm --prefix frontend run dev",
     "start": "concurrently --kill-others -n \"backend,frontend\" -c \"cyan,magenta\" \"npm --prefix backend run dev\" \"npm --prefix frontend run dev\"",
-    "build": "npm --prefix frontend run build",
+    "build": "npm --prefix frontend ci && npm --prefix frontend run build",
     "test": "npm --prefix backend test"
   },
   "devDependencies": {
-    "concurrently": "^9.1.2"
+    "concurrently": "^9.1.2",
+    "wrangler": "^4.149.0"
   }
 }
