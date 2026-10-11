@@ -12,11 +12,6 @@ import HomePage from './pages/public/HomePage';
 import HowItWorksPage from './pages/public/HowItWorksPage';
 import ExplorePage from './pages/public/ExplorePage';
 
-// Auth pages
-import CitizenLoginPage from './pages/auth/CitizenLoginPage';
-import CitizenSignupPage from './pages/auth/CitizenSignupPage';
-import GovLoginPage from './pages/auth/GovLoginPage';
-
 // Citizen pages
 import ReportGatePage from './pages/citizen/ReportGatePage';
 import ReportNewPage from './pages/citizen/ReportNewPage';
@@ -37,25 +32,14 @@ import { ToastContainer } from './components/ui/Toast';
 function RequireCitizen({ children }) {
   const { isAuthenticated, role, loading } = useAuth();
   if (loading) return null;
-  if (!isAuthenticated) return <Navigate to="/login" replace />;
-  if (role === 'government') return <Navigate to="/gov-demo" replace />;
+  if (isAuthenticated && role === 'government') return <Navigate to="/gov-demo" replace />;
   return children;
 }
 
 function RequireGov({ children }) {
   const { isAuthenticated, role, loading } = useAuth();
   if (loading) return null;
-  if (!isAuthenticated) return <Navigate to="/gov-demo/login" replace />;
-  if (role !== 'government') return <Navigate to="/dashboard" replace />;
-  return children;
-}
-
-function RedirectIfAuthed({ children }) {
-  const { isAuthenticated, role, loading } = useAuth();
-  if (loading) return null;
-  if (isAuthenticated) {
-    return <Navigate to={role === 'government' ? '/gov-demo' : '/dashboard'} replace />;
-  }
+  if (isAuthenticated && role !== 'government') return <Navigate to="/dashboard" replace />;
   return children;
 }
 
@@ -71,9 +55,9 @@ function AppRoutes() {
         </Route>
 
         {/* ── AUTH ── */}
-        <Route path="/login" element={<RedirectIfAuthed><CitizenLoginPage /></RedirectIfAuthed>} />
-        <Route path="/signup" element={<RedirectIfAuthed><CitizenSignupPage /></RedirectIfAuthed>} />
-        <Route path="/gov-demo/login" element={<RedirectIfAuthed><GovLoginPage /></RedirectIfAuthed>} />
+        <Route path="/login" element={<Navigate to="/dashboard" replace />} />
+        <Route path="/signup" element={<Navigate to="/dashboard" replace />} />
+        <Route path="/gov-demo/login" element={<Navigate to="/gov-demo" replace />} />
 
         {/* ── CITIZEN ── */}
         <Route element={<CitizenLayout />}>

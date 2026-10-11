@@ -26,7 +26,7 @@ export default function GovLayout() {
       {/* Official Simulation Notice Banner */}
       <div className="bg-[#FEF3C7] border-b border-[#F59E0B]/30 text-[#92400E] text-xs font-semibold py-2 px-4 flex items-center justify-center gap-2 text-center z-50">
         <ShieldAlert className="w-4 h-4 text-[#B8720A] shrink-0" />
-        <span>OFFICIAL SIMULATION — Government Decision Intelligence Console. Authenticated for authorized personnel only.</span>
+        <span>SIMULATION CONSOLE — Preview access is open. Protected government actions still require API authentication.</span>
       </div>
 
       {/* Gov Executive Topbar */}
