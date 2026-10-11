@@ -1,5 +1,9 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,300;0,14..32,400;0,14..32,500;0,14..32,600;0,14..32,700;0,14..32,800;0,14..32,900;1,14..32,400&family=JetBrains+Mono:wght@500;600;700&display=swap');
 
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
 /* =====================================================
    CIVICPULSE DESIGN SYSTEM — GLOBAL TOKENS
    ===================================================== */
@@ -101,6 +105,8 @@ body {
   background-color: var(--bg-primary);
   color: var(--text-primary);
   min-height: 100vh;
+  width: 100%;
+  overflow-x: clip;
   letter-spacing: -0.011em;
   line-height: 1.6;
   -webkit-font-smoothing: antialiased;
@@ -109,8 +115,15 @@ body {
 
 #root {
   min-height: 100vh;
+  width: 100%;
+  min-width: 0;
   display: flex;
   flex-direction: column;
+}
+
+main {
+  min-width: 0;
+  width: 100%;
 }
 
 img, video {
@@ -1203,6 +1216,18 @@ input[type="range"]::-webkit-slider-thumb:hover {
     padding: 0 16px;
   }
 
+  button, input, select, textarea {
+    max-width: 100%;
+  }
+
+  table {
+    min-width: 640px;
+  }
+
+  [role="dialog"] {
+    max-width: calc(100vw - 24px);
+  }
+
   .text-display {
     font-size: 2rem;
   }
@@ -1232,9 +1257,17 @@ input[type="range"]::-webkit-slider-thumb:hover {
 
 /* Mobile: 430px */
 @media (max-width: 430px) {
+  .container-xl, .container-lg, .container-md {
+    padding: 0 12px;
+  }
+
   .btn-primary, .btn-secondary {
     font-size: 13px;
     padding: 9px 16px;
+  }
+
+  .card-coffee {
+    border-radius: var(--radius-md);
   }
 
   .metric-card {
