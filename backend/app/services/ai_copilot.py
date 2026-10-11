@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Dict, Any, List
 from .data_store import db
 from .hotspot_engine import calculate_hotspots
@@ -35,7 +35,7 @@ def generate_ai_copilot_response(payload: AICopilotQuery) -> AICopilotResponse:
         brief = (
             f"EXECUTIVE POLICY MEMORANDUM\n"
             f"Subject: High-Priority Infrastructure & Citizen Demand Realignment Report ({c_name})\n"
-            f"Date: {datetime.utcnow().strftime('%B %d, %Y')} | Status: Action Required\n\n"
+            f"Date: {datetime.now(timezone.utc).strftime('%B %d, %Y')} | Status: Action Required\n\n"
             f"1. STRATEGIC OVERVIEW:\n"
             f"CivicPulse AI has ingested and fused {len(db.get_all_requests(c_code))} citizen feedback streams across voice, SMS, and messaging apps "
             f"with national demographic vulnerability records. {len(hotspots)} critical demand hotspots have been validated.\n\n"
@@ -112,5 +112,5 @@ def generate_ai_copilot_response(payload: AICopilotQuery) -> AICopilotResponse:
         generated_brief=brief,
         action_items=action_items,
         citations=citations,
-        generated_at=datetime.utcnow().isoformat() + "Z"
+        generated_at=datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
     )

@@ -1,6 +1,8 @@
 import uuid
 import random
-from datetime import datetime, timedelta
+import json
+from pathlib import Path
+from datetime import datetime, timedelta, timezone
 from typing import List, Dict, Any, Optional
 from ..models.schemas import (
     CountryCode, InfrastructureCategory, UrgencyLevel, SubmissionChannel,
@@ -708,17 +710,36 @@ RAW_SEED_COMPLAINTS = [
 ]
 
 class DataStore:
-    """In-memory high performance store with data fusion and dynamic expansion."""
+    """In-memory high performance store with data fusion, dynamic expansion, and disk persistence."""
     
     def __init__(self):
         self.regions: List[Dict[str, Any]] = BRICS_REGIONS
         self.requests: List[CitizenRequestResponse] = []
         self.live_events: List[Dict[str, Any]] = []
+        self._data_dir = Path(__file__).parent.parent / "data"
+        self._data_dir.mkdir(exist_ok=True)
+        self._json_file = self._data_dir / "persisted_requests.json"
+        self._csv_file = self._data_dir / "live_citizen_complaints.csv"
         self._initialize_requests()
         
     def _initialize_requests(self):
-        """Zero dummy complaints: start empty so only real citizen issues appear."""
+        """Load persisted citizen requests from disk if available."""
         self.requests = []
+        if self._json_file.exists():
+            try:
+                with open(self._json_file, "r", encoding="utf-8") as f:
+                    raw = json.load(f)
+                    self.requests = [CitizenRequestResponse.model_validate(item) for item in raw]
+            except Exception:
+                self.requests = []
+
+    def _save_requests(self):
+        """Persist current requests state to JSON."""
+        try:
+            with open(self._json_file, "w", encoding="utf-8") as f:
+                json.dump([r.model_dump() for r in self.requests], f, indent=2)
+        except Exception:
+            pass
             
     def get_all_requests(self, country_code: Optional[str] = None, category: Optional[str] = None, urgency: Optional[str] = None, submitter_id: Optional[str] = None) -> List[CitizenRequestResponse]:
         """Filter requests by nation, sector, urgency tier, or submitter."""
@@ -758,12 +779,22 @@ class DataStore:
         return None
 
     def clear_all_requests(self):
-        """Clear all citizen complaints and related evidence."""
+        """Clear all citizen complaints and related evidence, synchronizing disk persistence."""
         self.requests = []
         self.live_events = []
+        self._save_requests()
         try:
-            from .evidence_storage import _evidence_store
+            if self._csv_file.exists():
+                with open(self._csv_file, mode="w", encoding="utf-8", newline="") as f:
+                    import csv
+                    writer = csv.writer(f)
+                    writer.writerow(["id", "country_code", "state", "location", "category", "urgency", "urgency_score", "original_text", "translated_text", "channel", "created_at"])
+        except Exception:
+            pass
+        try:
+            from .evidence_storage import _evidence_store, _save_evidence_index
             _evidence_store.clear()
+            _save_evidence_index()
         except Exception:
             pass
         
@@ -862,7 +893,7 @@ class DataStore:
             official_notes="Real-time geo-located grievance received from citizen terminal.",
             submitter_id=payload.submitter_id,
             submitter_name=payload.citizen_name or "Verified Citizen",
-            created_at=datetime.utcnow().isoformat() + "Z",
+            created_at=datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
             extracted_entities=entities,
             evidence_count=0,
             evidence=[],
@@ -870,6 +901,7 @@ class DataStore:
         )
         
         self.requests.insert(0, new_req)
+        self._save_requests()
         
         # Record real-time event for Government Command Center Map live-sync
         event = {
@@ -918,11 +950,12 @@ class DataStore:
                 # Broadcast update event
                 update_event = {
                     "event_type": "STATUS_UPDATE",
-                    "timestamp": datetime.utcnow().isoformat() + "Z",
+                    "timestamp": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
                     "request": r.model_dump(),
                     "message": f"Status updated to '{status}' for grievance {r.id} ({r.location_name})"
                 }
                 self.live_events.insert(0, update_event)
+                self._save_requests()
                 return r
         return None
 
@@ -935,6 +968,7 @@ class DataStore:
         for r in self.requests:
             if r.id == request_id:
                 r.upvotes += 1
+                self._save_requests()
                 return r.upvotes
         return None
 

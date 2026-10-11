@@ -6,13 +6,15 @@ import os
 import uuid
 import mimetypes
 import hashlib
-from datetime import datetime
+import json
+from datetime import datetime, timezone
 from typing import Optional, List, Dict, Any
 from pathlib import Path
 
 # Evidence storage base directory
 UPLOAD_DIR = Path(__file__).parent.parent.parent / "uploads"
 UPLOAD_DIR.mkdir(exist_ok=True)
+INDEX_FILE = UPLOAD_DIR / "evidence_index.json"
 
 # Supported image MIME types
 ALLOWED_MIME_TYPES = {
@@ -25,8 +27,26 @@ ALLOWED_MIME_TYPES = {
 ALLOWED_EXTENSIONS = {".jpg", ".jpeg", ".png", ".webp"}
 MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024  # 10 MB
 
-# In-memory evidence store (keyed by complaint_id)
-_evidence_store: Dict[str, List[Dict[str, Any]]] = {}
+def _load_evidence_index() -> Dict[str, List[Dict[str, Any]]]:
+    """Load persistent evidence index from disk."""
+    if INDEX_FILE.exists():
+        try:
+            with open(INDEX_FILE, "r", encoding="utf-8") as f:
+                return json.load(f)
+        except Exception:
+            return {}
+    return {}
+
+def _save_evidence_index():
+    """Save persistent evidence index to disk."""
+    try:
+        with open(INDEX_FILE, "w", encoding="utf-8") as f:
+            json.dump(_evidence_store, f, indent=2)
+    except Exception:
+        pass
+
+# Evidence store (keyed by complaint_id) loaded from persistent index
+_evidence_store: Dict[str, List[Dict[str, Any]]] = _load_evidence_index()
 
 
 def _sanitize_filename(filename: str) -> str:
@@ -101,7 +121,7 @@ def store_evidence(
     with open(file_path, "wb") as f:
         f.write(file_bytes)
     
-    now = datetime.utcnow().isoformat()
+    now = datetime.now(timezone.utc).isoformat()
     
     storage_url = f"/api/evidence/{complaint_id}/{stored_name}"
     evidence_record = {
@@ -123,6 +143,7 @@ def store_evidence(
     if complaint_id not in _evidence_store:
         _evidence_store[complaint_id] = []
     _evidence_store[complaint_id].append(evidence_record)
+    _save_evidence_index()
     
     # Link evidence directly into the complaint record
     try:
@@ -184,6 +205,7 @@ def delete_evidence(complaint_id: str, evidence_id: str) -> bool:
         file_path.unlink()
     
     _evidence_store[complaint_id] = [r for r in records if r["id"] != evidence_id]
+    _save_evidence_index()
     return True
 
 
