@@ -4,8 +4,8 @@ import { Lock, Mail, Shield, AlertTriangle, ArrowRight, Eye, EyeOff, Loader2, Al
 import { useAuth } from '../../context/AuthContext';
 import brandLogo from '../../assets/civicpulse-logo.png';
 
-const DEMO_EMAIL = 'govdemo@civicpulse.local';
-const DEMO_PASS = 'Demo@123';
+const DEMO_EMAIL = import.meta.env.DEV ? 'govdemo@civicpulse.local' : '';
+const DEMO_PASS = import.meta.env.DEV ? 'Demo@123' : '';
 
 export default function GovLoginPage() {
   const { login, loginAsDemo } = useAuth();
@@ -19,7 +19,7 @@ export default function GovLoginPage() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true); setError('');
-    if (email === DEMO_EMAIL && password === DEMO_PASS) {
+    if (import.meta.env.DEV && email === DEMO_EMAIL && password === DEMO_PASS) {
       loginAsDemo('government');
       navigate('/gov-demo');
       return;
@@ -87,7 +87,7 @@ export default function GovLoginPage() {
           </div>
 
           {/* Quick Demo Fill Button */}
-          <div className="p-3.5 rounded-xl bg-[var(--bg-primary)] border border-[var(--border-warm)] flex items-center justify-between gap-3">
+          {import.meta.env.DEV && <div className="p-3.5 rounded-xl bg-[var(--bg-primary)] border border-[var(--border-warm)] flex items-center justify-between gap-3">
             <div className="text-xs">
               <div className="font-bold text-[var(--text-primary)]">Fast Evaluator Demo</div>
               <div className="text-[11px] text-[var(--text-tertiary)]">One-click auto authenticate</div>
@@ -99,7 +99,7 @@ export default function GovLoginPage() {
             >
               Sign In Instantly
             </button>
-          </div>
+          </div>}
 
           {error && (
             <div className="p-3 rounded-lg bg-[var(--status-danger-bg)] border border-[var(--status-danger-border)] text-[var(--status-danger)] text-xs flex items-center gap-2">
