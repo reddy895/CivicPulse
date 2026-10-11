@@ -149,6 +149,10 @@ npm run dev
 ```
 - **Frontend Web Application**: `http://localhost:5173`
 
+### Production configuration
+
+Review [SECURITY.md](SECURITY.md) before deployment. Set `CIVICPULSE_ENV=production` and `CIVICPULSE_ALLOWED_ORIGINS` on the backend, keep `CIVICPULSE_DEMO_MODE=false`, and set `VITE_API_BASE_URL` when the API is hosted separately. Production builds do not include client-only demo sign-in. The in-memory user and session stores are demonstration-only and must be replaced with durable shared storage before serving real users.
+
 ---
 
 ## 🌐 Supported BRICS Nations & Regional Data
