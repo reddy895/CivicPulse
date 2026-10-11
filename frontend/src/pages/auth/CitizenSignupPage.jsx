@@ -18,7 +18,7 @@ export default function CitizenSignupPage() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!form.name || !form.email || !form.password) { setError('Please fill in all required fields.'); return; }
-    if (form.password.length < 6) { setError('Password must be at least 6 characters.'); return; }
+    if (form.password.length < 12) { setError('Password must be at least 12 characters.'); return; }
     setLoading(true); setError('');
     const res = await register({ ...form, role: 'citizen' });
     setLoading(false);
@@ -89,7 +89,7 @@ export default function CitizenSignupPage() {
                   type={showPw ? 'text' : 'password'} 
                   value={form.password} 
                   onChange={set('password')} 
-                  placeholder="Min. 6 characters" 
+                  placeholder="Min. 12 characters"
                   className="form-input form-input-with-icon-left pl-11 pr-11" 
                   style={{ paddingLeft: '44px', paddingRight: '44px' }}
                   required 
