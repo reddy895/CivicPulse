@@ -10,7 +10,7 @@ import { useAuth } from '../../context/AuthContext';
 import { submitCitizenRequest } from '../../services/api';
 import { toast } from '../../components/ui/Toast';
 
-const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api';
+const API_BASE = import.meta.env.VITE_API_BASE_URL || import.meta.env.VITE_API_URL || '/api';
 
 const CATEGORIES = [
   { id: 'Roads & Public Transport', icon: Car, key: 'roads', label: 'Roads & Mobility', desc: 'Potholes, broken roads, traffic', color: '#D4A373' },
@@ -124,7 +124,12 @@ export default function ReportNewPage() {
       for (const img of images) {
         try {
           const fd = new FormData(); fd.append('file', img.file);
-          const r = await fetch(`${API_BASE}/complaints/${res.id}/evidence`, { method:'POST', body: fd });
+          const token = localStorage.getItem('cp_token');
+          const r = await fetch(`${API_BASE}/complaints/${res.id}/evidence`, {
+            method: 'POST',
+            headers: token ? { Authorization: `Bearer ${token}` } : {},
+            body: fd,
+          });
           if (r.ok) uploaded++;
         } catch {}
       }
