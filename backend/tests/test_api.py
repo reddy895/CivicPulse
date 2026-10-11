@@ -36,14 +36,22 @@ def test_multilingual_nlp():
     assert score >= 0.55
 
 def test_citizen_submit_and_upvote():
+    login = client.post("/api/auth/login", json={
+        "email_or_username": "citizen.india@civicpulse.org",
+        "password": "citizen123",
+        "role": "citizen"
+    })
+    auth_headers = {"Authorization": f"Bearer {login.json()['token']}"}
     payload = {
         "text": "The local primary clinic in Varanasi has no electricity backup for pediatric vaccine storage.",
         "country_code": "IND",
         "channel": "text"
     }
-    resp = client.post("/api/citizen/submit", json=payload)
+    assert client.post("/api/citizen/submit", json=payload).status_code == 401
+    resp = client.post("/api/citizen/submit", json=payload, headers=auth_headers)
     assert resp.status_code == 200
     data = resp.json()
+    assert data["submitter_id"] == login.json()["user"]["id"]
     assert data["category"] in [InfrastructureCategory.HEALTHCARE.value, InfrastructureCategory.CLEAN_ENERGY.value]
     assert data["upvotes"] == 1
     req_id = data["id"]
@@ -159,14 +167,34 @@ def test_authentication():
     assert gov_resp.status_code == 200
     gov_data = gov_resp.json()
     assert gov_data["user"]["role"] == "government"
+
+    # Role mismatches and unprovisioned accounts must never gain a session.
+    mismatch = client.post("/api/auth/login", json={
+        "email_or_username": "director.infra@gov.in",
+        "password": "admin123",
+        "role": "citizen"
+    })
+    assert mismatch.status_code == 401
+    assert client.post("/api/auth/register", json={
+        "name": "Unprovisioned Official",
+        "email": "official@example.gov",
+        "password": "LongEnoughPassword123!",
+        "role": "government"
+    }).status_code == 403
+    assert client.get("/api/auth/me").status_code == 401
     
     # Test Auth Me
     token = gov_data["token"]
-    me_resp = client.get(f"/api/auth/me?token={token}")
+    me_resp = client.get("/api/auth/me", headers={"Authorization": f"Bearer {token}"})
     assert me_resp.status_code == 200
     assert me_resp.json()["email"] == "director.infra@gov.in"
 
 def test_status_update_and_live_stream():
+    citizen_login = client.post("/api/auth/login", json={
+        "email_or_username": "citizen.india@civicpulse.org",
+        "password": "citizen123",
+        "role": "citizen"
+    })
     # Submit request
     submit_payload = {
         "text": "Bridge support collapse risk near river crossing in Bihar.",
@@ -175,17 +203,28 @@ def test_status_update_and_live_stream():
         "latitude": 26.0903,
         "longitude": 87.9405
     }
-    sub_resp = client.post("/api/citizen/submit", json=submit_payload)
+    sub_resp = client.post("/api/citizen/submit", json=submit_payload, headers={
+        "Authorization": f"Bearer {citizen_login.json()['token']}"
+    })
     assert sub_resp.status_code == 200
     req_data = sub_resp.json()
     req_id = req_data["id"]
+
+    # Status changes are restricted to authenticated government accounts.
+    assert client.patch(f"/api/citizen/requests/{req_id}/status", json={"status": "Closed"}).status_code == 401
+    gov_login = client.post("/api/auth/login", json={
+        "email_or_username": "director.infra@gov.in",
+        "password": "admin123",
+        "role": "government"
+    })
+    gov_token = gov_login.json()["token"]
 
     # Update status by government
     patch_resp = client.patch(f"/api/citizen/requests/{req_id}/status", json={
         "status": "Work Order Dispatched",
         "official_notes": "Structural engineering inspection team dispatched to site.",
         "assigned_agency": "State Highway & Infrastructure Dept"
-    })
+    }, headers={"Authorization": f"Bearer {gov_token}"})
     assert patch_resp.status_code == 200
     updated = patch_resp.json()
     assert updated["resolution_stage"] == "Work Order Dispatched"

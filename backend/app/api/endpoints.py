@@ -2,7 +2,8 @@ import io
 import csv
 import mimetypes
 from typing import Optional, List, Dict, Any
-from fastapi import APIRouter, UploadFile, File, Form, Query, HTTPException, Request
+from fastapi import APIRouter, UploadFile, File, Form, Query, HTTPException, Request, Depends
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from fastapi.responses import StreamingResponse, JSONResponse, Response
 
 from ..models.schemas import (
@@ -29,6 +30,30 @@ from ..services.evidence_storage import (
 )
 
 router = APIRouter()
+bearer_scheme = HTTPBearer(auto_error=False)
+
+
+def current_user(credentials: Optional[HTTPAuthorizationCredentials] = Depends(bearer_scheme)) -> UserProfile:
+    if not credentials or credentials.scheme.lower() != "bearer":
+        raise HTTPException(status_code=401, detail="Bearer authentication required")
+    profile = auth_service.get_user_by_token(credentials.credentials)
+    if not profile:
+        raise HTTPException(status_code=401, detail="Invalid or expired token")
+    return profile
+
+
+def government_user(user: UserProfile = Depends(current_user)) -> UserProfile:
+    if user.role.value != "government":
+        raise HTTPException(status_code=403, detail="Government role required")
+    return user
+
+
+def require_complaint_access(complaint_id: str, user: UserProfile) -> None:
+    complaint = db.get_request_by_id(complaint_id)
+    if not complaint:
+        raise HTTPException(status_code=404, detail="Complaint not found")
+    if user.role.value != "government" and complaint.submitter_id != user.id:
+        raise HTTPException(status_code=403, detail="Complaint access denied")
 
 # ----------------- AUTHENTICATION ENDPOINTS ----------------- #
 
@@ -43,17 +68,17 @@ async def login(payload: LoginRequest):
 @router.post("/auth/register", response_model=AuthTokenResponse)
 async def register(payload: RegisterRequest):
     """Register new citizen or government user."""
-    return auth_service.register(payload)
+    try:
+        return auth_service.register(payload)
+    except PermissionError as exc:
+        raise HTTPException(status_code=403, detail=str(exc)) from exc
+    except ValueError as exc:
+        raise HTTPException(status_code=409, detail=str(exc)) from exc
 
 @router.get("/auth/me", response_model=UserProfile)
-async def get_current_user_profile(token: Optional[str] = Query(None)):
+async def get_current_user_profile(user: UserProfile = Depends(current_user)):
     """Retrieve active authenticated profile."""
-    if not token:
-        raise HTTPException(status_code=401, detail="Missing authentication token")
-    profile = auth_service.get_user_by_token(token)
-    if not profile:
-        raise HTTPException(status_code=401, detail="Invalid or expired token")
-    return profile
+    return user
 
 
 # ----------------- DISABILITY & VETERAN COMPLAINTS DATASET ----------------- #
@@ -80,12 +105,15 @@ async def get_disability_analytics_summary():
 # ----------------- CITIZEN STREAM ENDPOINTS ----------------- #
 
 @router.post("/citizen/submit", response_model=CitizenRequestResponse)
-async def submit_citizen_request(payload: CitizenRequestCreate):
+async def submit_citizen_request(payload: CitizenRequestCreate, user: UserProfile = Depends(current_user)):
     """Submit a citizen infrastructure request via Text, WhatsApp, Telegram, or SMS."""
-    return db.add_request(payload)
+    if user.role.value != "citizen":
+        raise HTTPException(status_code=403, detail="Citizen role required")
+    trusted_payload = payload.model_copy(update={"submitter_id": user.id, "submitter_email": user.email, "citizen_name": user.name})
+    return db.add_request(trusted_payload)
 
 @router.post("/citizen/requests/clear")
-async def clear_citizen_requests():
+async def clear_citizen_requests(user: UserProfile = Depends(government_user)):
     """Clear all citizen requests and evidence (resets database to 0 complaints)."""
     db.clear_all_requests()
     return {"message": "All complaints and evidence successfully cleared.", "total_remaining": 0}
@@ -165,7 +193,8 @@ async def get_request_by_id(request_id: str):
 @router.patch("/citizen/requests/{request_id}/status", response_model=CitizenRequestResponse)
 async def update_complaint_status(
     request_id: str,
-    payload: ComplaintStatusUpdate
+    payload: ComplaintStatusUpdate,
+    user: UserProfile = Depends(government_user),
 ):
     """Update complaint status, official resolution notes, and agency assignment by government official."""
     updated = db.update_request_status(
@@ -186,11 +215,14 @@ async def update_complaint_status(
 async def upload_complaint_evidence(
     complaint_id: str,
     file: UploadFile = File(...),
+    user: UserProfile = Depends(current_user),
 ):
     """
     Upload evidence image for a complaint.
     Supports: JPG, JPEG, PNG, WEBP. Max 10MB per file, max 5 per complaint.
     """
+    require_complaint_access(complaint_id, user)
+
     # Check existing evidence count
     existing = get_evidence_for_complaint(complaint_id)
     if len(existing) >= 5:
@@ -232,18 +264,20 @@ async def upload_complaint_evidence(
 
 
 @router.get("/complaints/{complaint_id}/evidence")
-async def get_complaint_evidence(complaint_id: str):
+async def get_complaint_evidence(complaint_id: str, user: UserProfile = Depends(current_user)):
     """Get all evidence items for a complaint."""
+    require_complaint_access(complaint_id, user)
     evidence = get_evidence_for_complaint(complaint_id)
     return evidence
 
 
 @router.get("/evidence/{complaint_id}/{filename}")
-async def serve_evidence_file(complaint_id: str, filename: str):
+async def serve_evidence_file(complaint_id: str, filename: str, user: UserProfile = Depends(current_user)):
     """
     Serve evidence file bytes. 
     In production, redirect to signed S3 URL or enforce auth token check here.
     """
+    require_complaint_access(complaint_id, user)
     file_bytes = get_evidence_file(complaint_id, filename)
     if file_bytes is None:
         raise HTTPException(status_code=404, detail="Evidence file not found.")
@@ -264,8 +298,9 @@ async def serve_evidence_file(complaint_id: str, filename: str):
 
 
 @router.delete("/complaints/{complaint_id}/evidence/{evidence_id}")
-async def delete_complaint_evidence(complaint_id: str, evidence_id: str):
+async def delete_complaint_evidence(complaint_id: str, evidence_id: str, user: UserProfile = Depends(current_user)):
     """Delete a specific evidence item from a complaint."""
+    require_complaint_access(complaint_id, user)
     success = delete_evidence(complaint_id, evidence_id)
     if not success:
         raise HTTPException(status_code=404, detail="Evidence item not found.")
