@@ -40,14 +40,14 @@ class UserRole(str, Enum):
     GOVERNMENT = "government"
 
 class LoginRequest(BaseModel):
-    email_or_username: str
-    password: str
+    email_or_username: str = Field(..., min_length=3, max_length=254)
+    password: str = Field(..., min_length=1, max_length=256)
     role: Optional[UserRole] = None
 
 class RegisterRequest(BaseModel):
-    name: str
-    email: str
-    password: str
+    name: str = Field(..., min_length=1, max_length=120)
+    email: str = Field(..., min_length=3, max_length=254)
+    password: str = Field(..., min_length=12, max_length=256)
     role: UserRole = UserRole.CITIZEN
     country_code: CountryCode = CountryCode.INDIA
     district: Optional[str] = "Central District"

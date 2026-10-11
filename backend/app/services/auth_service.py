@@ -1,11 +1,30 @@
 import uuid
 import hashlib
+import hmac
+import os
+import secrets
+import time
 from typing import Dict, Optional, List
 from ..models.schemas import UserProfile, UserRole, LoginRequest, RegisterRequest, AuthTokenResponse, CountryCode
 
-# Password hashing helper
+# Versioned PBKDF2 storage keeps existing auth self-contained without fast hashes.
+PASSWORD_ITERATIONS = 600_000
+
 def hash_password(password: str) -> str:
-    return hashlib.sha256(password.encode("utf-8")).hexdigest()
+    salt = secrets.token_hex(16)
+    digest = hashlib.pbkdf2_hmac("sha256", password.encode("utf-8"), salt.encode("ascii"), PASSWORD_ITERATIONS)
+    return f"pbkdf2_sha256${PASSWORD_ITERATIONS}${salt}${digest.hex()}"
+
+
+def verify_password(password: str, stored_hash: str) -> bool:
+    try:
+        algorithm, iterations, salt, expected = stored_hash.split("$", 3)
+        if algorithm != "pbkdf2_sha256":
+            return False
+        digest = hashlib.pbkdf2_hmac("sha256", password.encode("utf-8"), salt.encode("ascii"), int(iterations))
+        return hmac.compare_digest(digest.hex(), expected)
+    except (ValueError, TypeError):
+        return False
 
 COUNTRY_NAMES = {
     "IND": "India",
@@ -103,62 +122,28 @@ INITIAL_USERS: List[Dict] = [
 
 class AuthService:
     def __init__(self):
-        self.users: Dict[str, Dict] = {u["email"].lower(): u for u in INITIAL_USERS}
-        self.tokens: Dict[str, str] = {} # token -> email
-        
-        # Pre-seed active tokens for instant demo access
-        for u in INITIAL_USERS:
-            demo_token = f"civic_token_{u['role'].value}_{u['id']}"
-            self.tokens[demo_token] = u["email"].lower()
+        demo_mode = os.getenv("CIVICPULSE_DEMO_MODE", "false").lower() == "true"
+        self.users: Dict[str, Dict] = {u["email"].lower(): u for u in INITIAL_USERS} if demo_mode else {}
+        self.tokens: Dict[str, tuple[str, float]] = {}
+        self.session_ttl_seconds = int(os.getenv("CIVICPULSE_SESSION_TTL_SECONDS", "28800"))
 
     def authenticate(self, req: LoginRequest) -> Optional[AuthTokenResponse]:
         clean_email = req.email_or_username.strip().lower()
         
-        # Find user by email
+        # Demo usernames are accepted only for explicitly enabled demo accounts.
         user_record = self.users.get(clean_email)
-        
-        # Fallback: check by username or create on the fly for seamless demo
         if not user_record:
-            # Check if username match
             for u in self.users.values():
                 if u["name"].lower() == clean_email or u["id"] == clean_email:
                     user_record = u
                     break
-                    
-        if not user_record:
-            # If standard demo password or generic login, auto-register seamless profile
-            req_role = req.role or UserRole.CITIZEN
-            c_code = "IND"
-            new_id = f"usr_{req_role.value}_{uuid.uuid4().hex[:6]}"
-            user_record = {
-                "id": new_id,
-                "name": req.email_or_username.split("@")[0].replace(".", " ").title(),
-                "email": clean_email,
-                "password_hash": hash_password(req.password),
-                "role": req_role,
-                "country_code": c_code,
-                "country_name": COUNTRY_NAMES.get(c_code, "India"),
-                "district": "Municipal Jurisdiction" if req_role == UserRole.GOVERNMENT else "Citizen Ward",
-                "department": "Municipal Public Works Department" if req_role == UserRole.GOVERNMENT else None,
-                "clearance_level": "Departmental Officer" if req_role == UserRole.GOVERNMENT else "Verified Citizen",
-                "avatar_url": None
-            }
-            self.users[clean_email] = user_record
-
-        # Check password hash (accept correct hash or demo defaults 'citizen123' / 'admin123' / identical password)
-        submitted_hash = hash_password(req.password)
-        if user_record["password_hash"] != submitted_hash and req.password not in ["citizen123", "admin123", "password", "demo123"]:
-            # Check if password match was plain text stored
-            if user_record.get("plain_password") != req.password:
-                return None
-
-        # Verify role if requested
+        if not user_record or not verify_password(req.password, user_record["password_hash"]):
+            return None
         if req.role and user_record["role"] != req.role:
-            # Allow role change for test accounts if user chose government or citizen
-            user_record["role"] = req.role
+            return None
 
-        token = f"cp_tok_{uuid.uuid4().hex}"
-        self.tokens[token] = user_record["email"]
+        token = secrets.token_urlsafe(32)
+        self.tokens[token] = (user_record["email"], time.time() + self.session_ttl_seconds)
 
         profile = UserProfile(
             id=user_record["id"],
@@ -176,7 +161,13 @@ class AuthService:
         return AuthTokenResponse(token=token, token_type="Bearer", user=profile)
 
     def register(self, req: RegisterRequest) -> AuthTokenResponse:
+        if req.role != UserRole.CITIZEN:
+            raise PermissionError("Government accounts must be provisioned by an administrator.")
         clean_email = req.email.strip().lower()
+        if clean_email in self.users:
+            raise ValueError("An account with this email already exists.")
+        if len(req.password) < 12:
+            raise ValueError("Password must be at least 12 characters.")
         c_code = req.country_code.value
         user_record = {
             "id": f"usr_{req.role.value}_{uuid.uuid4().hex[:6]}",
@@ -192,8 +183,8 @@ class AuthService:
             "avatar_url": None
         }
         self.users[clean_email] = user_record
-        token = f"cp_tok_{uuid.uuid4().hex}"
-        self.tokens[token] = clean_email
+        token = secrets.token_urlsafe(32)
+        self.tokens[token] = (clean_email, time.time() + self.session_ttl_seconds)
 
         profile = UserProfile(
             id=user_record["id"],
@@ -210,15 +201,12 @@ class AuthService:
         return AuthTokenResponse(token=token, token_type="Bearer", user=profile)
 
     def get_user_by_token(self, token: str) -> Optional[UserProfile]:
-        clean_token = token.replace("Bearer ", "").strip()
-        email = self.tokens.get(clean_token)
-        if not email:
-            # Check if it is a demo token
-            for t, em in self.tokens.items():
-                if t == clean_token:
-                    email = em
-                    break
-        if not email:
+        session = self.tokens.get(token.strip())
+        if not session:
+            return None
+        email, expires_at = session
+        if expires_at <= time.time():
+            self.tokens.pop(token.strip(), None)
             return None
         user_record = self.users.get(email)
         if not user_record:
