@@ -1,72 +1,35 @@
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || import.meta.env.VITE_API_URL || 'http://localhost:8000/api';
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || import.meta.env.VITE_API_URL || '/api';
 
 // Authentication API methods
 export async function loginUser(emailOrUsername, password, role = 'citizen') {
-  try {
-    const res = await fetch(`${API_BASE_URL}/auth/login`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email_or_username: emailOrUsername, password, role })
-    });
-    if (!res.ok) {
-      const err = await res.json().catch(() => ({ detail: 'Authentication failed' }));
-      throw new Error(err.detail || 'Login failed');
-    }
-    return await res.json();
-  } catch (err) {
-    console.warn('API Auth failed, using local demo authentication fallback:', err);
-    // Fallback for seamless demo experience if backend is unreachable
-    const isGov = role === 'government' || emailOrUsername.includes('gov') || emailOrUsername.includes('admin');
-    return {
-      token: `demo_tok_${Date.now()}`,
-      token_type: 'Bearer',
-      user: {
-        id: isGov ? 'usr_gov_demo' : 'usr_cit_demo',
-        name: isGov ? 'Dr. Sunita Rao (Director General)' : 'Rajesh Sharma (Citizen)',
-        email: emailOrUsername,
-        role: isGov ? 'government' : 'citizen',
-        country_code: 'IND',
-        country_name: 'India',
-        district: isGov ? 'National Planning Capital' : 'Varanasi District',
-        department: isGov ? 'Ministry of Housing & Urban Development' : null,
-        clearance_level: isGov ? 'Level 4 - National Director' : 'Verified Citizen'
-      }
-    };
+  const res = await fetch(`${API_BASE_URL}/auth/login`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email_or_username: emailOrUsername, password, role })
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ detail: 'Authentication failed' }));
+    throw new Error(err.detail || 'Login failed');
   }
+  return await res.json();
 }
 
 export async function registerUser(payload) {
-  try {
-    const res = await fetch(`${API_BASE_URL}/auth/register`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
-    });
-    if (!res.ok) throw new Error('Registration failed');
-    return await res.json();
-  } catch (err) {
-    console.warn('API Register failed, local fallback:', err);
-    return {
-      token: `demo_tok_${Date.now()}`,
-      token_type: 'Bearer',
-      user: {
-        id: `usr_${payload.role || 'citizen'}_new`,
-        name: payload.name,
-        email: payload.email,
-        role: payload.role || 'citizen',
-        country_code: payload.country_code || 'IND',
-        country_name: 'India',
-        district: payload.district || 'Central District',
-        department: payload.department || null,
-        clearance_level: payload.role === 'government' ? 'Accredited Official' : 'Registered Citizen'
-      }
-    };
+  const res = await fetch(`${API_BASE_URL}/auth/register`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload)
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ detail: 'Registration failed' }));
+    throw new Error(err.detail || 'Registration failed');
   }
+  return await res.json();
 }
 
 export async function getAuthUser(token) {
   try {
-    const res = await fetch(`${API_BASE_URL}/auth/me?token=${encodeURIComponent(token)}`);
+    const res = await fetch(`${API_BASE_URL}/auth/me`, { headers: { Authorization: `Bearer ${token}` } });
     if (!res.ok) throw new Error('Invalid token');
     return await res.json();
   } catch (err) {
@@ -76,9 +39,10 @@ export async function getAuthUser(token) {
 
 export async function updateComplaintStatus(requestId, status, officialNotes = '', assignedAgency = '', allocatedBudget = null) {
   try {
+    const token = localStorage.getItem('cp_token');
     const res = await fetch(`${API_BASE_URL}/citizen/requests/${requestId}/status`, {
       method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) },
       body: JSON.stringify({
         status,
         official_notes: officialNotes,
@@ -110,43 +74,17 @@ export async function getLiveEvents(limit = 25) {
 }
 
 export async function submitCitizenRequest(payload) {
-  try {
-    const res = await fetch(`${API_BASE_URL}/citizen/submit`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
-    });
-    if (!res.ok) throw new Error('Submission failed');
-    return await res.json();
-  } catch (err) {
-    console.warn('Backend offline, generating local simulation:', err);
-    const locStr = `${payload.location_name || ''} ${payload.text || ''}`.toLowerCase();
-    const isKarnataka = locStr.includes('karnataka') || locStr.includes('bengaluru') || locStr.includes('bangalore') || locStr.includes('mysuru') || locStr.includes('hubli');
-    
-    return {
-      id: `CR-LOCAL-${Math.floor(Math.random() * 9000 + 1000)}`,
-      original_text: payload.text,
-      translated_text: `[Translated] ${payload.text}`,
-      language: payload.language || (isKarnataka ? 'kn' : 'en'),
-      language_name: isKarnataka ? 'Kannada' : 'English',
-      channel: payload.channel || 'text',
-      country_code: payload.country_code || 'IND',
-      country_name: 'India',
-      category: payload.category || 'Water & Sanitation',
-      urgency: 'Critical',
-      urgency_score: 0.88,
-      sentiment_score: -0.88,
-      location_name: payload.location_name || (isKarnataka ? 'Bengaluru Urban & Rural' : 'Varanasi District'),
-      state_province: isKarnataka ? 'Karnataka' : (payload.state_province || 'Uttar Pradesh'),
-      latitude: isKarnataka ? (12.9716 + (Math.random() * 0.04 - 0.02)) : (payload.latitude || 25.3176),
-      longitude: isKarnataka ? (77.5946 + (Math.random() * 0.04 - 0.02)) : (payload.longitude || 82.9739),
-      upvotes: 1,
-      status: 'Submitted & Queued for GIS Hotspot Map',
-      submitter_name: payload.citizen_name || 'Verified Citizen',
-      created_at: new Date().toISOString(),
-      extracted_entities: { affected_count_estimate: 250 }
-    };
+  const token = localStorage.getItem('cp_token');
+  const res = await fetch(`${API_BASE_URL}/citizen/submit`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) },
+    body: JSON.stringify(payload)
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ detail: 'Submission failed' }));
+    throw new Error(err.detail || 'Submission failed');
   }
+  return await res.json();
 }
 
 export async function upvoteRequest(requestId) {
