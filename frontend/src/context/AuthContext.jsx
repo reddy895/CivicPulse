@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { loginUser, registerUser } from '../services/api';
+import { getAuthUser, loginUser, registerUser } from '../services/api';
 
 const AuthContext = createContext(null);
 
@@ -32,20 +32,30 @@ export function AuthProvider({ children }) {
   const [token, setToken] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // Rehydrate from localStorage
+  // Revalidate persisted sessions with the API; cached profile data is not trusted.
   useEffect(() => {
-    try {
+    let active = true;
+    const restoreSession = async () => {
       const savedToken = localStorage.getItem('cp_token');
-      const savedUser = localStorage.getItem('cp_user');
-      if (savedToken && savedUser) {
-        setToken(savedToken);
-        setUser(JSON.parse(savedUser));
+      if (savedToken) {
+        const profile = await getAuthUser(savedToken);
+        if (!active) return;
+        if (profile) {
+          setToken(savedToken);
+          setUser(profile);
+        } else {
+          localStorage.removeItem('cp_token');
+          localStorage.removeItem('cp_user');
+        }
       }
-    } catch {
+      if (active) setLoading(false);
+    };
+    restoreSession().catch(() => {
       localStorage.removeItem('cp_token');
       localStorage.removeItem('cp_user');
-    }
-    setLoading(false);
+      if (active) setLoading(false);
+    });
+    return () => { active = false; };
   }, []);
 
   const _persist = (tokenVal, userVal) => {
@@ -76,6 +86,7 @@ export function AuthProvider({ children }) {
   };
 
   const loginAsDemo = (role) => {
+    if (!import.meta.env.DEV) throw new Error('Demo authentication is disabled in production builds.');
     const demoUser = DEMO_USERS[role] || DEMO_USERS.citizen;
     const demoToken = `demo_tok_${Date.now()}`;
     _persist(demoToken, demoUser);
@@ -89,7 +100,7 @@ export function AuthProvider({ children }) {
     setUser(null);
   };
 
-  // Legacy: used by old components
+  // Legacy demo control remains available only in development builds.
   const switchRoleDemo = (role) => loginAsDemo(role);
 
   const isAuthenticated = !!user && !!token;
