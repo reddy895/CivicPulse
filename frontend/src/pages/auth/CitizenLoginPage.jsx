@@ -6,8 +6,11 @@ import { useTranslation } from 'react-i18next';
 import logoImg from '../../assets/logo.png';
 import brandLogo from '../../assets/civicpulse-logo.png';
 
+const DEMO_AUTH_ENABLED = import.meta.env.VITE_DEMO_AUTH_ENABLED === 'true';
+const DEMO_CREDENTIALS = { email: 'citizen.india@civicpulse.org', password: 'citizen123' };
+
 export default function CitizenLoginPage() {
-  const { login, loginAsDemo } = useAuth();
+  const { login } = useAuth();
   const { t } = useTranslation();
   const navigate = useNavigate();
   const [email, setEmail] = useState('');
@@ -29,9 +32,16 @@ export default function CitizenLoginPage() {
     }
   };
 
-  const handleDemo = () => {
-    loginAsDemo('citizen');
-    navigate('/dashboard');
+  const handleDemo = async () => {
+    setLoading(true);
+    setError('');
+    const res = await login(DEMO_CREDENTIALS.email, DEMO_CREDENTIALS.password, 'citizen');
+    setLoading(false);
+    if (res.success) {
+      navigate('/dashboard');
+    } else {
+      setError(res.error || 'Demo sign-in is unavailable.');
+    }
   };
 
   return (
@@ -56,7 +66,7 @@ export default function CitizenLoginPage() {
           </div>
 
           {/* Fast Evaluator Demo Banner */}
-          {import.meta.env.DEV && <div className="p-3.5 rounded-xl bg-[var(--bg-primary)] border border-[var(--border-warm)] flex items-center justify-between gap-3 mb-6 shadow-xs">
+          {DEMO_AUTH_ENABLED && <div className="p-3.5 rounded-xl bg-[var(--bg-primary)] border border-[var(--border-warm)] flex items-center justify-between gap-3 mb-6 shadow-xs">
             <div className="text-xs">
               <div className="font-bold text-[var(--text-primary)]">Fast Evaluator Demo</div>
               <div className="text-[11px] text-[var(--text-secondary)]">One-click instant authentication</div>
@@ -81,9 +91,9 @@ export default function CitizenLoginPage() {
             <div>
               <div className="flex items-center justify-between mb-1.5">
                 <label className="form-label mb-0">{t('auth.email')}</label>
-                {import.meta.env.DEV && <button
+                {DEMO_AUTH_ENABLED && <button
                   type="button"
-                  onClick={() => { setEmail('citizen@civicpulse.org'); setPassword('demo123'); }}
+                  onClick={() => { setEmail(DEMO_CREDENTIALS.email); setPassword(DEMO_CREDENTIALS.password); }}
                   className="text-[11px] text-[var(--accent-primary)] hover:underline font-medium cursor-pointer"
                 >
                   Prefill Demo
@@ -134,14 +144,15 @@ export default function CitizenLoginPage() {
             </button>
           </form>
 
-          {import.meta.env.DEV && <div className="relative my-6">
+          {DEMO_AUTH_ENABLED && <div className="relative my-6">
             <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-[var(--border-warm)]" /></div>
             <div className="relative flex justify-center"><span className="px-3 bg-white text-xs text-[var(--text-tertiary)]">or</span></div>
           </div>}
 
-          {import.meta.env.DEV && <button
+          {DEMO_AUTH_ENABLED && <button
             type="button"
-            onClick={handleDemo} 
+            onClick={handleDemo}
+            disabled={loading}
             className="btn-secondary w-full justify-center text-sm"
           >
             <User className="w-4 h-4" /> Quick Demo — Citizen Login

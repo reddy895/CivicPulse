@@ -3,30 +3,6 @@ import { getAuthUser, loginUser, registerUser } from '../services/api';
 
 const AuthContext = createContext(null);
 
-// Demo users for quick access
-export const DEMO_USERS = {
-  citizen: {
-    id: 'usr_citizen_demo',
-    name: 'Rajesh Sharma',
-    email: 'citizen@civicpulse.local',
-    role: 'citizen',
-    country_code: 'IND',
-    country_name: 'India',
-    district: 'Bengaluru Urban',
-    clearance_level: null,
-  },
-  government: {
-    id: 'usr_gov_demo',
-    name: 'Dr. Sunita Rao',
-    email: 'govdemo@civicpulse.local',
-    role: 'government',
-    country_code: 'IND',
-    country_name: 'India',
-    department: 'Ministry of Housing & Urban Infrastructure',
-    clearance_level: 'Level 4 - National Director',
-  },
-};
-
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [token, setToken] = useState(null);
@@ -85,23 +61,12 @@ export function AuthProvider({ children }) {
     }
   };
 
-  const loginAsDemo = (role) => {
-    if (!import.meta.env.DEV) throw new Error('Demo authentication is disabled in production builds.');
-    const demoUser = DEMO_USERS[role] || DEMO_USERS.citizen;
-    const demoToken = `demo_tok_${Date.now()}`;
-    _persist(demoToken, demoUser);
-    return demoUser;
-  };
-
   const logout = () => {
     localStorage.removeItem('cp_token');
     localStorage.removeItem('cp_user');
     setToken(null);
     setUser(null);
   };
-
-  // Legacy demo control remains available only in development builds.
-  const switchRoleDemo = (role) => loginAsDemo(role);
 
   const isAuthenticated = !!user && !!token;
   const role = user?.role || null;
@@ -111,7 +76,6 @@ export function AuthProvider({ children }) {
       user, token, role, loading,
       isAuthenticated,
       login, register, logout,
-      loginAsDemo, switchRoleDemo,
     }}>
       {children}
     </AuthContext.Provider>

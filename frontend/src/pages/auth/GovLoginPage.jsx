@@ -4,14 +4,14 @@ import { Lock, Mail, Shield, AlertTriangle, ArrowRight, Eye, EyeOff, Loader2, Al
 import { useAuth } from '../../context/AuthContext';
 import brandLogo from '../../assets/civicpulse-logo.png';
 
-const DEMO_EMAIL = import.meta.env.DEV ? 'govdemo@civicpulse.local' : '';
-const DEMO_PASS = import.meta.env.DEV ? 'Demo@123' : '';
+const DEMO_AUTH_ENABLED = import.meta.env.VITE_DEMO_AUTH_ENABLED === 'true';
+const DEMO_CREDENTIALS = { email: 'director.infra@gov.in', password: 'admin123' };
 
 export default function GovLoginPage() {
-  const { login, loginAsDemo } = useAuth();
+  const { login } = useAuth();
   const navigate = useNavigate();
-  const [email, setEmail] = useState(DEMO_EMAIL);
-  const [password, setPassword] = useState(DEMO_PASS);
+  const [email, setEmail] = useState(DEMO_AUTH_ENABLED ? DEMO_CREDENTIALS.email : '');
+  const [password, setPassword] = useState(DEMO_AUTH_ENABLED ? DEMO_CREDENTIALS.password : '');
   const [showPw, setShowPw] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -19,11 +19,6 @@ export default function GovLoginPage() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true); setError('');
-    if (import.meta.env.DEV && email === DEMO_EMAIL && password === DEMO_PASS) {
-      loginAsDemo('government');
-      navigate('/gov-demo');
-      return;
-    }
     const res = await login(email, password, 'government');
     setLoading(false);
     if (res.success) {
@@ -33,9 +28,16 @@ export default function GovLoginPage() {
     }
   };
 
-  const handleQuickDemo = () => {
-    loginAsDemo('government');
-    navigate('/gov-demo');
+  const handleQuickDemo = async () => {
+    setLoading(true);
+    setError('');
+    const res = await login(DEMO_CREDENTIALS.email, DEMO_CREDENTIALS.password, 'government');
+    setLoading(false);
+    if (res.success) {
+      navigate('/gov-demo');
+    } else {
+      setError(res.error || 'Demo sign-in is unavailable.');
+    }
   };
 
   return (
@@ -87,7 +89,7 @@ export default function GovLoginPage() {
           </div>
 
           {/* Quick Demo Fill Button */}
-          {import.meta.env.DEV && <div className="p-3.5 rounded-xl bg-[var(--bg-primary)] border border-[var(--border-warm)] flex items-center justify-between gap-3">
+          {DEMO_AUTH_ENABLED && <div className="p-3.5 rounded-xl bg-[var(--bg-primary)] border border-[var(--border-warm)] flex items-center justify-between gap-3">
             <div className="text-xs">
               <div className="font-bold text-[var(--text-primary)]">Fast Evaluator Demo</div>
               <div className="text-[11px] text-[var(--text-tertiary)]">One-click auto authenticate</div>
