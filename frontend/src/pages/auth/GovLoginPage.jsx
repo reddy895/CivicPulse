@@ -4,14 +4,13 @@ import { Lock, Mail, Shield, AlertTriangle, ArrowRight, Eye, EyeOff, Loader2, Al
 import { useAuth } from '../../context/AuthContext';
 import brandLogo from '../../assets/civicpulse-logo.png';
 
-const DEMO_AUTH_ENABLED = import.meta.env.VITE_DEMO_AUTH_ENABLED === 'true';
 const DEMO_CREDENTIALS = { email: 'director.infra@gov.in', password: 'admin123' };
 
 export default function GovLoginPage() {
   const { login } = useAuth();
   const navigate = useNavigate();
-  const [email, setEmail] = useState(DEMO_AUTH_ENABLED ? DEMO_CREDENTIALS.email : '');
-  const [password, setPassword] = useState(DEMO_AUTH_ENABLED ? DEMO_CREDENTIALS.password : '');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [showPw, setShowPw] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -24,7 +23,7 @@ export default function GovLoginPage() {
     if (res.success) {
       navigate('/gov-demo');
     } else {
-      setError(res.error || 'Invalid credentials. Use demo credentials shown below.');
+      setError(res.error || 'Invalid credentials or demo sign-in is unavailable.');
     }
   };
 
@@ -89,7 +88,7 @@ export default function GovLoginPage() {
           </div>
 
           {/* Quick Demo Fill Button */}
-          {DEMO_AUTH_ENABLED && <div className="p-3.5 rounded-xl bg-[var(--bg-primary)] border border-[var(--border-warm)] flex items-center justify-between gap-3">
+          <div className="p-3.5 rounded-xl bg-[var(--bg-primary)] border border-[var(--border-warm)] flex items-center justify-between gap-3">
             <div className="text-xs">
               <div className="font-bold text-[var(--text-primary)]">Fast Evaluator Demo</div>
               <div className="text-[11px] text-[var(--text-tertiary)]">One-click auto authenticate</div>
@@ -101,7 +100,7 @@ export default function GovLoginPage() {
             >
               Sign In Instantly
             </button>
-          </div>}
+          </div>
 
           {error && (
             <div className="p-3 rounded-lg bg-[var(--status-danger-bg)] border border-[var(--status-danger-border)] text-[var(--status-danger)] text-xs flex items-center gap-2">

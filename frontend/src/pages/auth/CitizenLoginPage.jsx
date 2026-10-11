@@ -6,7 +6,6 @@ import { useTranslation } from 'react-i18next';
 import logoImg from '../../assets/logo.png';
 import brandLogo from '../../assets/civicpulse-logo.png';
 
-const DEMO_AUTH_ENABLED = import.meta.env.VITE_DEMO_AUTH_ENABLED === 'true';
 const DEMO_CREDENTIALS = { email: 'citizen.india@civicpulse.org', password: 'citizen123' };
 
 export default function CitizenLoginPage() {
@@ -66,7 +65,7 @@ export default function CitizenLoginPage() {
           </div>
 
           {/* Fast Evaluator Demo Banner */}
-          {DEMO_AUTH_ENABLED && <div className="p-3.5 rounded-xl bg-[var(--bg-primary)] border border-[var(--border-warm)] flex items-center justify-between gap-3 mb-6 shadow-xs">
+          <div className="p-3.5 rounded-xl bg-[var(--bg-primary)] border border-[var(--border-warm)] flex items-center justify-between gap-3 mb-6 shadow-xs">
             <div className="text-xs">
               <div className="font-bold text-[var(--text-primary)]">Fast Evaluator Demo</div>
               <div className="text-[11px] text-[var(--text-secondary)]">One-click instant authentication</div>
@@ -78,7 +77,7 @@ export default function CitizenLoginPage() {
             >
               Sign In Instantly
             </button>
-          </div>}
+          </div>
 
           {error && (
             <div className="flex items-center gap-2 p-3 mb-5 rounded-[var(--radius-md)] bg-[var(--status-danger-bg)] border border-[var(--status-danger-border)] text-sm text-[var(--status-danger)]">
@@ -91,13 +90,13 @@ export default function CitizenLoginPage() {
             <div>
               <div className="flex items-center justify-between mb-1.5">
                 <label className="form-label mb-0">{t('auth.email')}</label>
-                {DEMO_AUTH_ENABLED && <button
+                <button
                   type="button"
                   onClick={() => { setEmail(DEMO_CREDENTIALS.email); setPassword(DEMO_CREDENTIALS.password); }}
                   className="text-[11px] text-[var(--accent-primary)] hover:underline font-medium cursor-pointer"
                 >
                   Prefill Demo
-                </button>}
+                </button>
               </div>
               <div className="relative">
                 <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-tertiary)] pointer-events-none" />
@@ -144,19 +143,19 @@ export default function CitizenLoginPage() {
             </button>
           </form>
 
-          {DEMO_AUTH_ENABLED && <div className="relative my-6">
+          <div className="relative my-6">
             <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-[var(--border-warm)]" /></div>
             <div className="relative flex justify-center"><span className="px-3 bg-white text-xs text-[var(--text-tertiary)]">or</span></div>
-          </div>}
+          </div>
 
-          {DEMO_AUTH_ENABLED && <button
+          <button
             type="button"
             onClick={handleDemo}
             disabled={loading}
             className="btn-secondary w-full justify-center text-sm"
           >
             <User className="w-4 h-4" /> Quick Demo — Citizen Login
-          </button>}
+          </button>
 
           <p className="text-center text-sm text-[var(--text-tertiary)] mt-6">
             Don't have an account?{' '}
